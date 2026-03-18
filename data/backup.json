@@ -85,6 +85,45 @@
       "notes": "",
       "active": true,
       "autoCreate": true
+    },
+    {
+      "id": "mmw8y3vgrre8tb",
+      "name": "Crunchyroll Mega Fan",
+      "icon": "",
+      "billingCycle": "yearly",
+      "amount": 139,
+      "currency": "BRL",
+      "category": "Assinaturas",
+      "lastCharge": "2026-03-22",
+      "notes": "",
+      "active": true,
+      "autoCreate": true
+    },
+    {
+      "id": "mmw8yuarzo95x1",
+      "name": "Meli+ Mega",
+      "icon": "",
+      "billingCycle": "monthly",
+      "amount": 164,
+      "currency": "BRL",
+      "category": "Assinaturas",
+      "lastCharge": "2026-02-21",
+      "notes": "",
+      "active": true,
+      "autoCreate": true
+    },
+    {
+      "id": "mmw8zbdkx2tlic",
+      "name": "Chat GPT Pro",
+      "icon": "",
+      "billingCycle": "monthly",
+      "amount": 99.9,
+      "currency": "BRL",
+      "category": "Assinaturas",
+      "lastCharge": "2026-03-25",
+      "notes": "",
+      "active": true,
+      "autoCreate": true
     }
   ],
   "budgets": []
