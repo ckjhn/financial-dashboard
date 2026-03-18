@@ -3,7 +3,30 @@
   "investments": [],
   "currencies": [],
   "exchanges": [],
-  "goals": [],
+  "goals": [
+    {
+      "id": "mmwctlk0rbdfe7",
+      "name": "Emergency",
+      "type": "financial",
+      "priority": "medium",
+      "targetValue": 3000,
+      "currentValue": 0,
+      "currency": "BRL",
+      "deadline": "",
+      "notes": ""
+    },
+    {
+      "id": "mmwctrywfy09f8",
+      "name": "Investment",
+      "type": "financial",
+      "priority": "medium",
+      "targetValue": 1000,
+      "currentValue": 0,
+      "currency": "BRL",
+      "deadline": "",
+      "notes": ""
+    }
+  ],
   "travels": [
     {
       "id": "mmwamzfuqgq5zq",
