@@ -2140,14 +2140,26 @@ function renderDashboard() {
   let income, expense, balance, txs;
   let incomeLabel = 'Receitas';
   let expenseLabel = 'Despesas';
+  let committedSubsExtra = 0; // uncommitted subs cost to add
+
+  // Helper: for month-based periods, ensure FULL subscription cost is reflected
+  // even if some charges haven't happened yet
+  const isMonthPeriod = ['month','prev-month','custom-month'].includes(period);
+  const isCurrentMonth = period === 'month';
 
   if (allocId !== 'all') {
     // ── ALLOCATION VIEW ──
-    // Income for this allocation = (period income - period subscription costs) × alloc %
     const alloc = (DB.allocations||[]).find(a=>a.id===allocId);
     const totalPeriodIncome = allPeriodTxs.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
-    const periodSubsExpense = allPeriodTxs.filter(t=>t.type==='expense' && t.subscriptionId).reduce((s,t)=>s+parseFloat(t.amount),0);
-    const availableForAlloc = Math.max(0, totalPeriodIncome - periodSubsExpense);
+    const actualPeriodSubsExpense = allPeriodTxs.filter(t=>t.type==='expense' && t.subscriptionId).reduce((s,t)=>s+parseFloat(t.amount),0);
+
+    // For month periods: use MAX(actual subs, expected monthly cost) so all subs are committed
+    let effectiveSubsCost = actualPeriodSubsExpense;
+    if (isMonthPeriod) {
+      effectiveSubsCost = Math.max(actualPeriodSubsExpense, monthlySubsCost);
+    }
+
+    const availableForAlloc = Math.max(0, totalPeriodIncome - effectiveSubsCost);
     const allocPct = alloc ? alloc.pct / 100 : 0;
 
     income = availableForAlloc * allocPct;
@@ -2162,8 +2174,28 @@ function renderDashboard() {
     // ── ALL ALLOCATIONS VIEW ──
     txs = allPeriodTxs;
     income = txs.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
-    expense = txs.filter(t=>t.type==='expense').reduce((s,t)=>s+parseFloat(t.amount),0);
+
+    const actualNonSubExpense = txs.filter(t=>t.type==='expense' && !t.subscriptionId).reduce((s,t)=>s+parseFloat(t.amount),0);
+    const actualSubExpense = txs.filter(t=>t.type==='expense' && t.subscriptionId).reduce((s,t)=>s+parseFloat(t.amount),0);
+
+    // For month periods: committed subs = MAX(actual sub txs, full monthly cost)
+    // This ensures ALL subscriptions are reflected even if some haven't charged yet
+    let effectiveSubExpense = actualSubExpense;
+    if (isMonthPeriod) {
+      effectiveSubExpense = Math.max(actualSubExpense, monthlySubsCost);
+      committedSubsExtra = effectiveSubExpense - actualSubExpense;
+    }
+
+    expense = actualNonSubExpense + effectiveSubExpense;
     balance = income - expense;
+
+    // For current month: if there's salary configured but no income tx yet,
+    // still show the commitment impact
+    if (isCurrentMonth && income === 0 && (DB.settings.salary || 0) > 0) {
+      income = DB.settings.salary;
+      expense = effectiveSubExpense + actualNonSubExpense;
+      balance = income - expense;
+    }
   }
 
   // Subscription deduction bar
@@ -2181,9 +2213,16 @@ function renderDashboard() {
     }
   } else {
     const periodSubsCost = getSubsCostForDashPeriod();
-    if (periodSubsCost > 0 && txs.length > 0) {
+    if (periodSubsCost > 0) {
       subsDeductionEl.style.display = 'block';
-      subsDeductionEl.innerHTML = '<div class="subs-deduction-bar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> Custo de assinaturas no período: <span class="mono">' + fmtMoney(periodSubsCost, bc) + '</span> (incluído nas despesas)</div>';
+      let barHtml = '<div class="subs-deduction-bar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> ';
+      if (committedSubsExtra > 0) {
+        barHtml += 'Assinaturas comprometidas: <span class="mono">' + fmtMoney(periodSubsCost, bc) + '</span> (faltam <span class="mono">' + fmtMoney(committedSubsExtra, bc) + '</span> em cobranças pendentes)';
+      } else {
+        barHtml += 'Custo de assinaturas no período: <span class="mono">' + fmtMoney(periodSubsCost, bc) + '</span> (incluído nas despesas)';
+      }
+      barHtml += '</div>';
+      subsDeductionEl.innerHTML = barHtml;
     } else {
       subsDeductionEl.style.display = 'none';
     }
@@ -2223,7 +2262,8 @@ function renderDashboard() {
   } else {
     const allIncome = DB.transactions.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
     const allExpense = DB.transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+parseFloat(t.amount),0);
-    netWorth = (allIncome - allExpense) + invTotal;
+    // Include committed (not yet charged) subscription costs in net worth
+    netWorth = (allIncome - allExpense - committedSubsExtra) + invTotal;
     savingsRate = income > 0 ? Math.max(0, ((income - expense) / income * 100)) : 0;
   }
   const healthScore = calcHealthScore();
@@ -3225,8 +3265,16 @@ function calcHealthScore() {
   const now = new Date();
   const m = now.getMonth(), y = now.getFullYear();
   const monthTxs = DB.transactions.filter(t=>{ const d=new Date(t.date); return d.getMonth()===m&&d.getFullYear()===y; });
-  const mIncome = monthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
-  const mExpense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+parseFloat(t.amount),0);
+  let mIncome = monthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
+  const actualSubExpense = monthTxs.filter(t=>t.type==='expense'&&t.subscriptionId).reduce((s,t)=>s+parseFloat(t.amount),0);
+  const actualNonSubExpense = monthTxs.filter(t=>t.type==='expense'&&!t.subscriptionId).reduce((s,t)=>s+parseFloat(t.amount),0);
+  // Use committed subscription costs (full monthly) instead of just actual charges
+  const monthlySubsCost = getMonthlySubsCost();
+  const effectiveSubExpense = Math.max(actualSubExpense, monthlySubsCost);
+  const mExpense = actualNonSubExpense + effectiveSubExpense;
+
+  // If no income tx but salary configured, use salary
+  if (mIncome === 0 && (DB.settings.salary || 0) > 0) mIncome = DB.settings.salary;
 
   // 1. Positive cash flow this month (25pts)
   if (mIncome > 0) {
@@ -3275,7 +3323,13 @@ function subNextDate(lastCharge, billingCycle) {
   if (billingCycle === 'yearly') {
     d.setFullYear(d.getFullYear() + 1);
   } else {
-    d.setDate(d.getDate() + 30);
+    // Proper monthly: same day next month (clamped to end-of-month)
+    const origDay = d.getDate();
+    d.setMonth(d.getMonth() + 1);
+    // If day overflowed (e.g. Jan 31 -> Mar 3), clamp to last day of intended month
+    if (d.getDate() !== origDay) {
+      d.setDate(0); // go to last day of previous month
+    }
   }
   return d.toISOString().split('T')[0];
 }
@@ -3300,6 +3354,29 @@ function processAllSubscriptions() {
   let created = 0;
   const today = new Date().toISOString().split('T')[0];
   subs.forEach(sub => {
+    // STEP 1: Ensure a transaction exists for the lastCharge date itself
+    // (the date the user said they were already charged)
+    if (sub.lastCharge && sub.lastCharge <= today) {
+      const alreadyExistsForLastCharge = DB.transactions.some(t =>
+        t.subscriptionId === sub.id && t.date === sub.lastCharge
+      );
+      if (!alreadyExistsForLastCharge) {
+        DB.transactions.push({
+          id: uid(),
+          type: 'expense',
+          date: sub.lastCharge,
+          description: sub.name,
+          amount: sub.amount,
+          currency: sub.currency,
+          category: sub.category,
+          notes: sub.billingCycle === 'yearly' ? 'Cobrança anual automática' : 'Cobrança automática de assinatura',
+          subscriptionId: sub.id
+        });
+        created++;
+      }
+    }
+
+    // STEP 2: Create transactions for any subsequent cycles that have already passed
     let current = sub.lastCharge;
     let safety = 0;
     while (daysDiff(subNextDate(current, sub.billingCycle)) <= 0 && safety < 24) {
@@ -4131,17 +4208,36 @@ loadGHConfigUI();
 (async function() {
   const loaded = await autoLoadFromGitHub();
   if (loaded) {
+    // Re-process subscriptions with GitHub data (may have different subs/dates)
+    silentProcessSubscriptions();
     renderAll();
     loadGHConfigUI();
   }
 })();
 
-// Auto-process subscription charges on load (silent)
-(function() {
-  if (!DB.subscriptions || DB.subscriptions.length === 0) return;
+// Auto-process subscription charges (reusable silent version)
+function silentProcessSubscriptions() {
+  if (!DB.subscriptions || DB.subscriptions.length === 0) return false;
   const subs = DB.subscriptions.filter(s=>s.active && s.autoCreate);
+  const today = new Date().toISOString().split('T')[0];
   let changed = false;
   subs.forEach(sub => {
+    // STEP 1: Ensure transaction exists for lastCharge date itself
+    if (sub.lastCharge && sub.lastCharge <= today) {
+      const alreadyExistsForLastCharge = DB.transactions.some(t =>
+        t.subscriptionId === sub.id && t.date === sub.lastCharge
+      );
+      if (!alreadyExistsForLastCharge) {
+        DB.transactions.push({
+          id: uid(), type:'expense', date: sub.lastCharge,
+          description:sub.name, amount:sub.amount, currency:sub.currency,
+          category:sub.category, notes: sub.billingCycle === 'yearly' ? 'Cobrança anual automática' : 'Cobrança automática de assinatura',
+          subscriptionId:sub.id
+        });
+        changed = true;
+      }
+    }
+    // STEP 2: Create transactions for subsequent passed cycles
     let current = sub.lastCharge;
     let safety = 0;
     while (daysDiff(subNextDate(current, sub.billingCycle)) <= 0 && safety < 24) {
@@ -4162,7 +4258,11 @@ loadGHConfigUI();
     if (current !== sub.lastCharge) { sub.lastCharge = current; changed = true; }
   });
   if (changed) saveDB();
-})();
+  return changed;
+}
+
+// Run silent process on local DB first
+silentProcessSubscriptions();
 
 renderAll();
 </script>
