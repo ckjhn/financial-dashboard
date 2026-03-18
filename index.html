@@ -524,6 +524,114 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   z-index: 101;
 }
 
+/* SUBSCRIPTION CARD */
+.sub-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all 0.2s;
+  position: relative;
+}
+.sub-card:hover { border-color: rgba(255,255,255,0.08); }
+.sub-card.paused { opacity: 0.55; }
+.sub-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.sub-status-dot.active { background: var(--accent-green); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.sub-status-dot.paused { background: var(--text-muted); }
+
+/* UPCOMING CHARGE BADGE */
+.charge-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.charge-badge.overdue { background: rgba(239,68,68,0.15); color: var(--accent-red); }
+.charge-badge.soon { background: rgba(245,158,11,0.15); color: var(--accent-orange); }
+.charge-badge.ok { background: rgba(34,197,94,0.1); color: var(--accent-green); }
+
+/* BUDGET BAR */
+.budget-row {
+  margin-bottom: 16px;
+}
+.budget-label-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.budget-bar-track {
+  height: 8px;
+  background: var(--bg-input);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* HEALTH SCORE */
+.health-ring {
+  display: flex; align-items: center; justify-content: center;
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  border: 3px solid;
+  margin: 0 auto;
+}
+.health-ring.excellent { border-color: var(--accent-green); color: var(--accent-green); }
+.health-ring.good { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.health-ring.fair { border-color: var(--accent-orange); color: var(--accent-orange); }
+.health-ring.poor { border-color: var(--accent-red); color: var(--accent-red); }
+
+/* TOGGLE SWITCH */
+.toggle-switch {
+  position: relative;
+  width: 40px; height: 22px;
+  cursor: pointer;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg-input);
+  border-radius: 22px;
+  transition: .3s;
+  border: 1px solid var(--border);
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  width: 16px; height: 16px;
+  left: 2px; bottom: 2px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: .3s;
+}
+.toggle-switch input:checked + .toggle-slider { background: rgba(0,212,170,0.2); border-color: var(--accent-cyan); }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(18px); background: var(--accent-cyan); }
+
+/* SEARCH BAR */
+.search-input-wrap {
+  position: relative;
+}
+.search-input-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px;
+  color: var(--text-muted);
+}
+.search-input-wrap input {
+  padding-left: 38px;
+}
+
 /* MISC */
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
 .mb-20 { margin-bottom: 20px; }
@@ -563,6 +671,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
           Transações
         </div>
+        <div class="nav-item" data-page="subscriptions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          Assinaturas
+        </div>
         <div class="nav-item" data-page="investments">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Investimentos
@@ -577,6 +689,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         <div class="nav-item" data-page="goals">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
           Metas
+        </div>
+        <div class="nav-item" data-page="budget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 9h4M6 12h6M14 9h4"/></svg>
+          Orçamento
         </div>
         <div class="nav-item" data-page="travels">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
@@ -620,6 +736,8 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
       <div class="grid-4 mb-24" id="dashSummary"></div>
 
+      <div class="grid-3 mb-24" id="dashInsights"></div>
+
       <div class="grid-2 mb-24">
         <div class="card">
           <div class="card-title">Fluxo de Caixa</div>
@@ -633,10 +751,14 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         </div>
       </div>
 
-      <div class="grid-2">
+      <div class="grid-3">
         <div class="card">
           <div class="card-title">Últimas Transações</div>
           <div class="table-container" id="dashRecentTx"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Próximas Cobranças</div>
+          <div id="dashUpcomingSubs"></div>
         </div>
         <div class="card">
           <div class="card-title">Progresso das Metas</div>
@@ -653,6 +775,11 @@ tr:hover td { background: rgba(255,255,255,0.02); }
           <div class="page-header-sub">Receitas, despesas e transferências</div>
         </div>
         <div class="header-actions">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input class="form-input" id="txSearch" placeholder="Buscar..." style="width:180px" oninput="renderTransactions()">
+          </div>
+          <input type="month" class="form-input" id="txFilterMonth" style="width:150px" onchange="renderTransactions()">
           <select class="form-select" id="txFilterType" style="width:140px" onchange="renderTransactions()">
             <option value="all">Todos</option>
             <option value="income">Receitas</option>
@@ -772,6 +899,49 @@ tr:hover td { background: rgba(255,255,255,0.02); }
         </div>
       </div>
       <div class="grid-2" id="travelsGrid"></div>
+    </div>
+
+    <!-- ===== SUBSCRIPTIONS PAGE ===== -->
+    <div class="page" id="page-subscriptions">
+      <div class="page-header">
+        <div>
+          <h2>Assinaturas</h2>
+          <div class="page-header-sub">Serviços recorrentes com cobrança automática a cada 30 dias</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="processAllSubscriptions()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Processar Cobranças
+          </button>
+          <button class="btn btn-primary" onclick="openSubModal()">＋ Nova Assinatura</button>
+        </div>
+      </div>
+      <div class="grid-4 mb-24" id="subSummary"></div>
+      <div class="grid-3" id="subsGrid"></div>
+    </div>
+
+    <!-- ===== BUDGET PAGE ===== -->
+    <div class="page" id="page-budget">
+      <div class="page-header">
+        <div>
+          <h2>Orçamento Mensal</h2>
+          <div class="page-header-sub">Limites por categoria e controle de gastos do mês atual</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openBudgetModal()">＋ Novo Limite</button>
+        </div>
+      </div>
+      <div class="grid-4 mb-24" id="budgetSummary"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Gastos vs Limites — <span id="budgetMonthLabel"></span></div>
+          <div id="budgetBars"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Limites Configurados</div>
+          <div class="table-container" id="budgetTable"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ===== SETTINGS PAGE ===== -->
@@ -1242,6 +1412,128 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   </div>
 </div>
 
+<!-- ===== SUBSCRIPTION MODAL ===== -->
+<div class="modal-overlay" id="subModalOverlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 id="subModalTitle">Nova Assinatura</h3>
+      <button class="modal-close" onclick="closeModal('subModalOverlay')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="subEditId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome do Serviço</label>
+          <input class="form-input" id="subName" placeholder="Ex: Netflix, Spotify, Adobe CC">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ícone (emoji)</label>
+          <input class="form-input" id="subIcon" placeholder="🎬" style="max-width:90px">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor Mensal</label>
+          <input type="number" step="0.01" class="form-input" id="subAmount" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moeda</label>
+          <select class="form-select" id="subCurrency">
+            <option value="BRL">BRL</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Categoria</label>
+          <select class="form-select" id="subCategory">
+            <option value="Assinaturas">Assinaturas</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Educação">Educação</option>
+            <option value="Moradia">Moradia</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Última Cobrança</label>
+          <input type="date" class="form-input" id="subLastCharge">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas (opcional)</label>
+        <input class="form-input" id="subNotes" placeholder="Plano, conta vinculada...">
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="subActive" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:13px;color:var(--text-secondary);">Assinatura Ativa</span>
+        <span style="flex:1"></span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="subAutoCreate" checked>
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:13px;color:var(--text-secondary);">Criar transação automaticamente</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('subModalOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSub()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BUDGET MODAL ===== -->
+<div class="modal-overlay" id="budgetModalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="budgetModalTitle">Novo Limite de Orçamento</h3>
+      <button class="modal-close" onclick="closeModal('budgetModalOverlay')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="budgetEditId">
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-select" id="budgetCategory">
+          <option value="Alimentação">Alimentação</option>
+          <option value="Moradia">Moradia</option>
+          <option value="Transporte">Transporte</option>
+          <option value="Saúde">Saúde</option>
+          <option value="Educação">Educação</option>
+          <option value="Lazer">Lazer</option>
+          <option value="Assinaturas">Assinaturas</option>
+          <option value="Compras">Compras</option>
+          <option value="Viagem">Viagem</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Limite Mensal</label>
+          <input type="number" step="0.01" class="form-input" id="budgetLimit" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moeda</label>
+          <select class="form-select" id="budgetCurrency">
+            <option value="BRL">BRL</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('budgetModalOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBudget()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================
 // DATABASE & PERSISTENCE
@@ -1256,6 +1548,8 @@ function getEmptyDB() {
     exchanges: [],
     goals: [],
     travels: [],
+    subscriptions: [],
+    budgets: [],
     settings: {
       baseCurrency: 'BRL',
       github: { token:'', repo:'', path:'data/backup.json', branch:'main' }
@@ -1388,6 +1682,33 @@ function renderDashboard() {
     <div class="card"><div class="card-title">Investido</div><div class="card-value text-purple">${fmtMoney(invTotal,bc)}</div></div>
   `;
 
+  // Insight cards: Net Worth, Savings Rate, Health Score
+  const allIncome = DB.transactions.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
+  const allExpense = DB.transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+parseFloat(t.amount),0);
+  const netWorth = (allIncome - allExpense) + invTotal;
+  const savingsRate = income > 0 ? Math.max(0, ((income-expense)/income*100)) : 0;
+  const healthScore = calcHealthScore();
+  const hClass = healthScore>=80?'excellent':healthScore>=60?'good':healthScore>=40?'fair':'poor';
+  const hLabel = healthScore>=80?'Excelente':healthScore>=60?'Boa':healthScore>=40?'Regular':'Atenção';
+
+  document.getElementById('dashInsights').innerHTML = `
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Patrimônio Líquido</div>
+      <div class="card-value ${netWorth>=0?'text-cyan':'text-red'}">${fmtMoney(netWorth,bc)}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Saldo acumulado + investimentos</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Taxa de Poupança</div>
+      <div class="card-value" style="color:${savingsRate>=20?'var(--accent-green)':savingsRate>=10?'var(--accent-orange)':'var(--accent-red)'}">${savingsRate.toFixed(1)}%</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">${savingsRate>=20?'Excelente — meta atingida':savingsRate>=10?'Razoável — tente chegar a 20%':'Abaixo do ideal'}</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="card-title">Saúde Financeira</div>
+      <div style="margin:12px 0"><div class="health-ring ${hClass}">${healthScore}</div></div>
+      <div style="font-size:12px;color:var(--text-muted);">${hLabel}</div>
+    </div>
+  `;
+
   // Cash flow chart
   const months = [];
   for (let i = 5; i >= 0; i--) {
@@ -1434,6 +1755,32 @@ function renderDashboard() {
     });
     html += '</tbody></table>';
     document.getElementById('dashRecentTx').innerHTML = html;
+  }
+
+  // Upcoming subscriptions
+  const upSubs = getUpcomingSubscriptions(14);
+  if (upSubs.length === 0) {
+    document.getElementById('dashUpcomingSubs').innerHTML = '<div class="empty-state"><p>Nenhuma cobrança nos próximos 14 dias</p></div>';
+  } else {
+    let html = '';
+    upSubs.forEach(({sub, nextDate, daysUntil}) => {
+      const cls = daysUntil < 0 ? 'overdue' : daysUntil <= 3 ? 'soon' : 'ok';
+      const label = daysUntil < 0 ? `Vencida há ${Math.abs(daysUntil)}d` : daysUntil === 0 ? 'Hoje!' : `${daysUntil}d`;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">${sub.icon||'📦'}</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;">${sub.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${fmtDate(nextDate)}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="mono" style="font-size:13px;">${fmtMoney(sub.amount,sub.currency)}</span>
+          <span class="charge-badge ${cls}">${label}</span>
+        </div>
+      </div>`;
+    });
+    document.getElementById('dashUpcomingSubs').innerHTML = html;
   }
 
   // Goals progress
@@ -1519,8 +1866,16 @@ function deleteTx(id) {
 
 function renderTransactions() {
   const filter = document.getElementById('txFilterType').value;
+  const search = (document.getElementById('txSearch')?.value || '').toLowerCase();
+  const monthVal = document.getElementById('txFilterMonth')?.value || '';
   let txs = [...DB.transactions].sort((a,b)=>b.date.localeCompare(a.date));
   if (filter !== 'all') txs = txs.filter(t=>t.type===filter);
+  if (monthVal) txs = txs.filter(t=>t.date.startsWith(monthVal));
+  if (search) txs = txs.filter(t=>
+    t.description.toLowerCase().includes(search) ||
+    (t.category||'').toLowerCase().includes(search) ||
+    (t.notes||'').toLowerCase().includes(search)
+  );
 
   if (txs.length === 0) {
     document.getElementById('txTable').innerHTML = '<div class="empty-state"><p>Nenhuma transação encontrada</p></div>';
@@ -1530,9 +1885,10 @@ function renderTransactions() {
   let html = '<table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Moeda</th><th class="text-right">Valor</th><th>Notas</th><th></th></tr></thead><tbody>';
   txs.forEach(t => {
     const isInc = t.type==='income';
+    const isSub = !!t.subscriptionId;
     html += `<tr>
       <td class="mono text-muted">${fmtDate(t.date)}</td>
-      <td>${t.description}</td>
+      <td>${t.description}${isSub?'<span class="badge badge-purple" style="margin-left:6px;font-size:10px;">auto</span>':''}</td>
       <td><span class="badge ${isInc?'badge-green':'badge-red'}">${t.category}</span></td>
       <td class="mono">${t.currency}</td>
       <td class="mono text-right ${isInc?'text-green':'text-red'}">${isInc?'+':'−'}${fmtMoney(t.amount,t.currency)}</td>
@@ -2200,7 +2556,391 @@ function loadGHConfig() {
 }
 
 // ============================
-// RENDER ALL
+// HEALTH SCORE
+// ============================
+function calcHealthScore() {
+  let score = 0;
+  const now = new Date();
+  const m = now.getMonth(), y = now.getFullYear();
+  const monthTxs = DB.transactions.filter(t=>{ const d=new Date(t.date); return d.getMonth()===m&&d.getFullYear()===y; });
+  const mIncome = monthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+parseFloat(t.amount),0);
+  const mExpense = monthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+parseFloat(t.amount),0);
+
+  // 1. Positive cash flow this month (25pts)
+  if (mIncome > 0) {
+    const ratio = mExpense / mIncome;
+    if (ratio <= 0.6) score += 25;
+    else if (ratio <= 0.8) score += 18;
+    else if (ratio <= 1.0) score += 10;
+  }
+
+  // 2. Has investments (20pts)
+  const invTotal = DB.investments.reduce((s,i)=>s+parseFloat(i.currentValue||0),0);
+  if (invTotal > 0) score += 20;
+
+  // 3. Savings rate >= 20% (20pts)
+  if (mIncome > 0) {
+    const sr = (mIncome - mExpense) / mIncome;
+    if (sr >= 0.2) score += 20;
+    else if (sr >= 0.1) score += 10;
+    else if (sr > 0) score += 5;
+  }
+
+  // 4. Has financial goals (10pts)
+  if (DB.goals.filter(g=>g.type==='financial').length > 0) score += 10;
+
+  // 5. Budget compliance — no category over 110% of limit (15pts)
+  const budgetsOk = DB.budgets.every(b => {
+    const spent = monthTxs.filter(t=>t.type==='expense'&&t.category===b.category).reduce((s,t)=>s+parseFloat(t.amount),0);
+    return spent <= b.limit * 1.1;
+  });
+  if (DB.budgets.length > 0 && budgetsOk) score += 15;
+  else if (DB.budgets.length === 0) score += 8;
+
+  // 6. Transaction diversity — uses multiple categories (10pts)
+  const cats = [...new Set(monthTxs.filter(t=>t.type==='expense').map(t=>t.category))];
+  if (cats.length >= 4) score += 10;
+  else if (cats.length >= 2) score += 5;
+
+  return Math.min(100, score);
+}
+
+// ============================
+// SUBSCRIPTIONS
+// ============================
+function subNextDate(lastCharge) {
+  const d = new Date(lastCharge + 'T12:00:00');
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().split('T')[0];
+}
+
+function daysDiff(dateStr) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const target = new Date(dateStr + 'T12:00:00'); target.setHours(0,0,0,0);
+  return Math.round((target - now) / (1000*60*60*24));
+}
+
+function getUpcomingSubscriptions(withinDays=30) {
+  const active = (DB.subscriptions||[]).filter(s=>s.active);
+  return active.map(sub => {
+    const nextDate = subNextDate(sub.lastCharge);
+    const daysUntil = daysDiff(nextDate);
+    return { sub, nextDate, daysUntil };
+  }).filter(x => x.daysUntil <= withinDays).sort((a,b)=>a.daysUntil-b.daysUntil);
+}
+
+function processAllSubscriptions() {
+  const subs = (DB.subscriptions||[]).filter(s=>s.active && s.autoCreate);
+  let created = 0;
+  const today = new Date().toISOString().split('T')[0];
+  subs.forEach(sub => {
+    let current = sub.lastCharge;
+    let safety = 0;
+    while (daysDiff(subNextDate(current)) <= 0 && safety < 24) {
+      const nextDate = subNextDate(current);
+      // Check if not already created for this cycle
+      const alreadyExists = DB.transactions.some(t =>
+        t.subscriptionId === sub.id && t.date === nextDate
+      );
+      if (!alreadyExists) {
+        DB.transactions.push({
+          id: uid(),
+          type: 'expense',
+          date: nextDate,
+          description: sub.name,
+          amount: sub.amount,
+          currency: sub.currency,
+          category: sub.category,
+          notes: 'Cobrança automática de assinatura',
+          subscriptionId: sub.id
+        });
+        created++;
+      }
+      current = nextDate;
+      safety++;
+    }
+    // Advance lastCharge to most recent charge
+    if (current !== sub.lastCharge) {
+      sub.lastCharge = current;
+    }
+  });
+  saveDB();
+  renderSubscriptions();
+  renderTransactions();
+  renderDashboard();
+  if (created > 0) toast(`${created} cobrança(s) criada(s) automaticamente`, 'success');
+  else toast('Nenhuma cobrança pendente no momento', 'info');
+}
+
+function openSubModal(id) {
+  const isEdit = !!id;
+  document.getElementById('subModalTitle').textContent = isEdit ? 'Editar Assinatura' : 'Nova Assinatura';
+  document.getElementById('subEditId').value = id || '';
+  if (isEdit) {
+    const s = (DB.subscriptions||[]).find(x=>x.id===id);
+    if (!s) return;
+    document.getElementById('subName').value = s.name;
+    document.getElementById('subIcon').value = s.icon || '';
+    document.getElementById('subAmount').value = s.amount;
+    document.getElementById('subCurrency').value = s.currency;
+    document.getElementById('subCategory').value = s.category;
+    document.getElementById('subLastCharge').value = s.lastCharge;
+    document.getElementById('subNotes').value = s.notes || '';
+    document.getElementById('subActive').checked = s.active;
+    document.getElementById('subAutoCreate').checked = s.autoCreate !== false;
+  } else {
+    document.getElementById('subName').value = '';
+    document.getElementById('subIcon').value = '';
+    document.getElementById('subAmount').value = '';
+    document.getElementById('subCurrency').value = DB.settings.baseCurrency;
+    document.getElementById('subCategory').value = 'Assinaturas';
+    document.getElementById('subLastCharge').value = new Date().toISOString().split('T')[0];
+    document.getElementById('subNotes').value = '';
+    document.getElementById('subActive').checked = true;
+    document.getElementById('subAutoCreate').checked = true;
+  }
+  openModal('subModalOverlay');
+}
+
+function saveSub() {
+  const id = document.getElementById('subEditId').value;
+  const obj = {
+    id: id || uid(),
+    name: document.getElementById('subName').value,
+    icon: document.getElementById('subIcon').value,
+    amount: parseFloat(document.getElementById('subAmount').value)||0,
+    currency: document.getElementById('subCurrency').value,
+    category: document.getElementById('subCategory').value,
+    lastCharge: document.getElementById('subLastCharge').value,
+    notes: document.getElementById('subNotes').value,
+    active: document.getElementById('subActive').checked,
+    autoCreate: document.getElementById('subAutoCreate').checked
+  };
+  if (!obj.name || !obj.amount || !obj.lastCharge) { toast('Preencha nome, valor e data da última cobrança','error'); return; }
+  if (!DB.subscriptions) DB.subscriptions = [];
+  if (id) {
+    const idx = DB.subscriptions.findIndex(s=>s.id===id);
+    if (idx>=0) DB.subscriptions[idx] = obj;
+  } else {
+    DB.subscriptions.push(obj);
+  }
+  saveDB(); closeModal('subModalOverlay'); renderSubscriptions();
+  toast(id?'Assinatura atualizada':'Assinatura adicionada','success');
+  // Auto-process after save
+  setTimeout(()=>processAllSubscriptions(),300);
+}
+
+function deleteSub(id) {
+  if (!confirm('Excluir esta assinatura? As transações já criadas serão mantidas.')) return;
+  DB.subscriptions = (DB.subscriptions||[]).filter(s=>s.id!==id);
+  saveDB(); renderSubscriptions();
+  toast('Assinatura excluída','info');
+}
+
+function toggleSubActive(id) {
+  const sub = (DB.subscriptions||[]).find(s=>s.id===id);
+  if (!sub) return;
+  sub.active = !sub.active;
+  saveDB(); renderSubscriptions();
+  toast(sub.active ? 'Assinatura reativada' : 'Assinatura pausada', 'info');
+}
+
+function renderSubscriptions() {
+  if (!DB.subscriptions) DB.subscriptions = [];
+  const bc = DB.settings.baseCurrency;
+  const active = DB.subscriptions.filter(s=>s.active);
+  const totalMonthly = active.reduce((s,x)=>s+x.amount, 0);
+  const totalYearly = totalMonthly * 12;
+
+  const upcoming = getUpcomingSubscriptions(7).length;
+
+  document.getElementById('subSummary').innerHTML = `
+    <div class="card"><div class="card-title">Assinaturas Ativas</div><div class="card-value text-cyan">${active.length}</div></div>
+    <div class="card"><div class="card-title">Custo Mensal</div><div class="card-value text-red">${fmtMoney(totalMonthly,bc)}</div></div>
+    <div class="card"><div class="card-title">Custo Anual</div><div class="card-value text-orange">${fmtMoney(totalYearly,bc)}</div></div>
+    <div class="card"><div class="card-title">Cobranças em 7 dias</div><div class="card-value ${upcoming>0?'text-orange':'text-green'}">${upcoming}</div></div>
+  `;
+
+  if (DB.subscriptions.length === 0) {
+    document.getElementById('subsGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>Nenhuma assinatura cadastrada</p></div>';
+    return;
+  }
+
+  let html = '';
+  [...DB.subscriptions].sort((a,b)=>a.name.localeCompare(b.name)).forEach(sub => {
+    const nextDate = subNextDate(sub.lastCharge);
+    const daysUntil = daysDiff(nextDate);
+    const cls = daysUntil < 0 ? 'overdue' : daysUntil <= 3 ? 'soon' : 'ok';
+    const label = daysUntil < 0 ? `Vencida há ${Math.abs(daysUntil)}d` : daysUntil === 0 ? 'Hoje!' : `em ${daysUntil}d`;
+
+    html += `<div class="sub-card${sub.active?'':' paused'}">
+      <div style="position:absolute;top:16px;right:16px;display:flex;gap:4px;align-items:center;">
+        <label class="toggle-switch" title="${sub.active?'Pausar':'Reativar'}">
+          <input type="checkbox" ${sub.active?'checked':''} onchange="toggleSubActive('${sub.id}')">
+          <span class="toggle-slider"></span>
+        </label>
+        ${editBtn("openSubModal('"+sub.id+"')")}${delBtn("deleteSub('"+sub.id+"')")}
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-right:100px;">
+        <span style="font-size:34px;line-height:1;">${sub.icon||'📦'}</span>
+        <div>
+          <div style="font-size:16px;font-weight:600;">${sub.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${sub.category}${sub.notes?' · '+sub.notes:''}</div>
+        </div>
+      </div>
+      <div class="flex-between" style="margin-bottom:10px;">
+        <div>
+          <div class="mono" style="font-size:22px;font-weight:600;">${fmtMoney(sub.amount,sub.currency)}<span style="font-size:12px;font-weight:400;color:var(--text-muted);"> /mês</span></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Anual: ${fmtMoney(sub.amount*12,sub.currency)}</div>
+        </div>
+        <div style="text-align:right;">
+          ${sub.active ? `<span class="charge-badge ${cls}">${label}</span>` : '<span class="charge-badge" style="background:rgba(90,92,106,0.2);color:var(--text-muted)">Pausada</span>'}
+          ${sub.active ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Próx: ${fmtDate(nextDate)}</div>` : ''}
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);">
+        <span class="sub-status-dot ${sub.active?'active':'paused'}"></span>Última cobrança: ${fmtDate(sub.lastCharge)}
+        ${sub.autoCreate ? '<span style="margin-left:10px;color:var(--accent-cyan);">⚡ auto-tx</span>' : ''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('subsGrid').innerHTML = html;
+}
+
+// ============================
+// BUDGET
+// ============================
+function openBudgetModal(id) {
+  const isEdit = !!id;
+  document.getElementById('budgetModalTitle').textContent = isEdit ? 'Editar Limite' : 'Novo Limite de Orçamento';
+  document.getElementById('budgetEditId').value = id || '';
+  if (isEdit) {
+    const b = (DB.budgets||[]).find(x=>x.id===id);
+    if (!b) return;
+    document.getElementById('budgetCategory').value = b.category;
+    document.getElementById('budgetLimit').value = b.limit;
+    document.getElementById('budgetCurrency').value = b.currency;
+  } else {
+    document.getElementById('budgetCategory').value = 'Alimentação';
+    document.getElementById('budgetLimit').value = '';
+    document.getElementById('budgetCurrency').value = DB.settings.baseCurrency;
+  }
+  openModal('budgetModalOverlay');
+}
+
+function saveBudget() {
+  const id = document.getElementById('budgetEditId').value;
+  const obj = {
+    id: id || uid(),
+    category: document.getElementById('budgetCategory').value,
+    limit: parseFloat(document.getElementById('budgetLimit').value)||0,
+    currency: document.getElementById('budgetCurrency').value
+  };
+  if (!obj.limit) { toast('Preencha o limite mensal','error'); return; }
+  if (!DB.budgets) DB.budgets = [];
+  // Prevent duplicate category if new
+  if (!id && DB.budgets.some(b=>b.category===obj.category)) {
+    toast('Já existe um limite para esta categoria','error'); return;
+  }
+  if (id) {
+    const idx = DB.budgets.findIndex(b=>b.id===id);
+    if (idx>=0) DB.budgets[idx] = obj;
+  } else {
+    DB.budgets.push(obj);
+  }
+  saveDB(); closeModal('budgetModalOverlay'); renderBudget();
+  toast(id?'Limite atualizado':'Limite criado','success');
+}
+
+function deleteBudget(id) {
+  if (!confirm('Excluir este limite?')) return;
+  DB.budgets = (DB.budgets||[]).filter(b=>b.id!==id);
+  saveDB(); renderBudget();
+}
+
+function renderBudget() {
+  if (!DB.budgets) DB.budgets = [];
+  const now = new Date();
+  const m = now.getMonth(), y = now.getFullYear();
+  const monthLabel = now.toLocaleDateString('pt-BR',{month:'long', year:'numeric'});
+  document.getElementById('budgetMonthLabel').textContent = monthLabel;
+
+  const monthExpenses = DB.transactions.filter(t=>{
+    const d=new Date(t.date); return t.type==='expense'&&d.getMonth()===m&&d.getFullYear()===y;
+  });
+
+  const totalLimit = DB.budgets.reduce((s,b)=>s+b.limit,0);
+  const totalSpent = monthExpenses.reduce((s,t)=>s+parseFloat(t.amount),0);
+  const categoriesOver = DB.budgets.filter(b=>{
+    const spent=monthExpenses.filter(t=>t.category===b.category).reduce((s,t)=>s+parseFloat(t.amount),0);
+    return spent > b.limit;
+  }).length;
+  const bc = DB.settings.baseCurrency;
+
+  document.getElementById('budgetSummary').innerHTML = `
+    <div class="card"><div class="card-title">Limites Definidos</div><div class="card-value">${DB.budgets.length}</div></div>
+    <div class="card"><div class="card-title">Total Limitado</div><div class="card-value text-blue">${fmtMoney(totalLimit,bc)}</div></div>
+    <div class="card"><div class="card-title">Gasto no Mês</div><div class="card-value text-red">${fmtMoney(totalSpent,bc)}</div></div>
+    <div class="card"><div class="card-title">Categorias Excedidas</div><div class="card-value ${categoriesOver>0?'text-red':'text-green'}">${categoriesOver}</div></div>
+  `;
+
+  // Budget bars
+  if (DB.budgets.length === 0) {
+    document.getElementById('budgetBars').innerHTML = '<div class="empty-state"><p>Nenhum limite definido</p></div>';
+  } else {
+    let html = '';
+    DB.budgets.forEach(b => {
+      const spent = monthExpenses.filter(t=>t.category===b.category).reduce((s,t)=>s+parseFloat(t.amount),0);
+      const pct = b.limit > 0 ? Math.min(120, spent/b.limit*100) : 0;
+      const remaining = b.limit - spent;
+      const barColor = pct > 100 ? 'var(--accent-red)' : pct > 80 ? 'var(--accent-orange)' : 'var(--accent-cyan)';
+      const statusLabel = pct > 100 ? `<span style="font-size:11px;color:var(--accent-red);font-weight:600;">+${fmtMoney(Math.abs(remaining),b.currency)} acima do limite</span>` :
+                          pct > 80 ? `<span style="font-size:11px;color:var(--accent-orange);">Restam ${fmtMoney(remaining,b.currency)}</span>` :
+                          `<span style="font-size:11px;color:var(--text-muted);">Restam ${fmtMoney(remaining,b.currency)}</span>`;
+      html += `<div class="budget-row">
+        <div class="budget-label-row">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="width:10px;height:10px;border-radius:2px;background:${catColor(b.category)};display:inline-block;"></span>
+            <span style="font-size:13px;font-weight:500;">${b.category}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="mono" style="font-size:12px;">${fmtMoney(spent,b.currency)} / ${fmtMoney(b.limit,b.currency)}</span>
+            <span style="font-size:11px;font-weight:600;color:${barColor};">${pct.toFixed(0)}%</span>
+          </div>
+        </div>
+        <div class="budget-bar-track">
+          <div class="budget-bar-fill" style="width:${Math.min(100,pct)}%;background:${barColor};"></div>
+        </div>
+        <div style="margin-top:4px;">${statusLabel}</div>
+      </div>`;
+    });
+    document.getElementById('budgetBars').innerHTML = html;
+  }
+
+  // Budget table
+  if (DB.budgets.length === 0) {
+    document.getElementById('budgetTable').innerHTML = '<div class="empty-state"><p>Nenhum limite configurado</p></div>';
+  } else {
+    let html = '<table><thead><tr><th>Categoria</th><th>Limite</th><th>Gasto</th><th>Status</th><th></th></tr></thead><tbody>';
+    DB.budgets.forEach(b => {
+      const spent = monthExpenses.filter(t=>t.category===b.category).reduce((s,t)=>s+parseFloat(t.amount),0);
+      const pct = b.limit > 0 ? spent/b.limit*100 : 0;
+      const badge = pct > 100 ? '<span class="badge badge-red">Excedido</span>' :
+                    pct > 80 ? '<span class="badge badge-orange">Atenção</span>' :
+                    '<span class="badge badge-green">OK</span>';
+      html += `<tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:2px;background:${catColor(b.category)};display:inline-block;"></span>${b.category}</div></td>
+        <td class="mono">${fmtMoney(b.limit,b.currency)}</td>
+        <td class="mono ${pct>100?'text-red':''}">${fmtMoney(spent,b.currency)}</td>
+        <td>${badge}</td>
+        <td><div class="row-actions">${editBtn("openBudgetModal('"+b.id+"')")}${delBtn("deleteBudget('"+b.id+"')")}</div></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('budgetTable').innerHTML = html;
+  }
+}
+
 // ============================
 function renderAll() {
   renderDashboard();
@@ -2209,6 +2949,8 @@ function renderAll() {
   renderCurrencies();
   renderGoals();
   renderTravels();
+  renderSubscriptions();
+  renderBudget();
   updateSyncStatus();
 }
 
@@ -2217,6 +2959,35 @@ function renderAll() {
 // ============================
 loadDB();
 loadGHConfig();
+
+// Auto-process subscription charges on load (silent)
+(function() {
+  if (!DB.subscriptions || DB.subscriptions.length === 0) return;
+  const subs = DB.subscriptions.filter(s=>s.active && s.autoCreate);
+  let changed = false;
+  subs.forEach(sub => {
+    let current = sub.lastCharge;
+    let safety = 0;
+    while (daysDiff(subNextDate(current)) <= 0 && safety < 24) {
+      const nextDate = subNextDate(current);
+      const alreadyExists = DB.transactions.some(t => t.subscriptionId === sub.id && t.date === nextDate);
+      if (!alreadyExists) {
+        DB.transactions.push({
+          id: uid(), type:'expense', date:nextDate,
+          description:sub.name, amount:sub.amount, currency:sub.currency,
+          category:sub.category, notes:'Cobrança automática de assinatura',
+          subscriptionId:sub.id
+        });
+        changed = true;
+      }
+      current = nextDate;
+      safety++;
+    }
+    if (current !== sub.lastCharge) { sub.lastCharge = current; changed = true; }
+  });
+  if (changed) saveDB();
+})();
+
 renderAll();
 </script>
 </body>
