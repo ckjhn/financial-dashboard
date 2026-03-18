@@ -895,7 +895,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
       <div class="page-header">
         <div>
           <h2>Assinaturas</h2>
-          <div class="page-header-sub">Serviços recorrentes com cobrança automática a cada 30 dias</div>
+          <div class="page-header-sub">Serviços recorrentes com cobrança automática mensal ou anual</div>
         </div>
         <div class="header-actions">
           <button class="btn btn-secondary" onclick="processAllSubscriptions()">
@@ -1438,8 +1438,11 @@ tr:hover td { background: rgba(255,255,255,0.02); }
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Valor Mensal</label>
-          <input type="number" step="0.01" class="form-input" id="subAmount" placeholder="0.00">
+          <label class="form-label">Ciclo de Cobrança</label>
+          <select class="form-select" id="subBillingCycle" onchange="updateSubAmountLabel()">
+            <option value="monthly">Mensal (a cada 30 dias)</option>
+            <option value="yearly">Anual (a cada 365 dias)</option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">Moeda</label>
@@ -1448,6 +1451,13 @@ tr:hover td { background: rgba(255,255,255,0.02); }
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
           </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" id="subAmountLabel">Valor Mensal</label>
+          <input type="number" step="0.01" class="form-input" id="subAmount" placeholder="0.00" oninput="updateSubEquivalent()">
+          <div id="subEquivalentHint" style="font-size:11px;color:var(--accent-cyan);margin-top:6px;min-height:16px;"></div>
         </div>
       </div>
       <div class="form-row">
@@ -2683,9 +2693,13 @@ function calcHealthScore() {
 // ============================
 // SUBSCRIPTIONS
 // ============================
-function subNextDate(lastCharge) {
+function subNextDate(lastCharge, billingCycle) {
   const d = new Date(lastCharge + 'T12:00:00');
-  d.setDate(d.getDate() + 30);
+  if (billingCycle === 'yearly') {
+    d.setFullYear(d.getFullYear() + 1);
+  } else {
+    d.setDate(d.getDate() + 30);
+  }
   return d.toISOString().split('T')[0];
 }
 
@@ -2698,7 +2712,7 @@ function daysDiff(dateStr) {
 function getUpcomingSubscriptions(withinDays=30) {
   const active = (DB.subscriptions||[]).filter(s=>s.active);
   return active.map(sub => {
-    const nextDate = subNextDate(sub.lastCharge);
+    const nextDate = subNextDate(sub.lastCharge, sub.billingCycle);
     const daysUntil = daysDiff(nextDate);
     return { sub, nextDate, daysUntil };
   }).filter(x => x.daysUntil <= withinDays).sort((a,b)=>a.daysUntil-b.daysUntil);
@@ -2711,8 +2725,8 @@ function processAllSubscriptions() {
   subs.forEach(sub => {
     let current = sub.lastCharge;
     let safety = 0;
-    while (daysDiff(subNextDate(current)) <= 0 && safety < 24) {
-      const nextDate = subNextDate(current);
+    while (daysDiff(subNextDate(current, sub.billingCycle)) <= 0 && safety < 24) {
+      const nextDate = subNextDate(current, sub.billingCycle);
       // Check if not already created for this cycle
       const alreadyExists = DB.transactions.some(t =>
         t.subscriptionId === sub.id && t.date === nextDate
@@ -2726,7 +2740,7 @@ function processAllSubscriptions() {
           amount: sub.amount,
           currency: sub.currency,
           category: sub.category,
-          notes: 'Cobrança automática de assinatura',
+          notes: sub.billingCycle === 'yearly' ? 'Cobrança anual automática' : 'Cobrança automática de assinatura',
           subscriptionId: sub.id
         });
         created++;
@@ -2747,6 +2761,25 @@ function processAllSubscriptions() {
   else toast('Nenhuma cobrança pendente no momento', 'info');
 }
 
+function updateSubAmountLabel() {
+  const cycle = document.getElementById('subBillingCycle').value;
+  document.getElementById('subAmountLabel').textContent = cycle === 'yearly' ? 'Valor Anual' : 'Valor Mensal';
+  updateSubEquivalent();
+}
+
+function updateSubEquivalent() {
+  const cycle = document.getElementById('subBillingCycle').value;
+  const amount = parseFloat(document.getElementById('subAmount').value) || 0;
+  const currency = document.getElementById('subCurrency').value;
+  const hint = document.getElementById('subEquivalentHint');
+  if (!amount) { hint.textContent = ''; return; }
+  if (cycle === 'yearly') {
+    hint.innerHTML = `≈ <strong>${fmtMoney(amount / 12, currency)}</strong>/mês · Cobrança única anual de ${fmtMoney(amount, currency)}`;
+  } else {
+    hint.innerHTML = `≈ <strong>${fmtMoney(amount * 12, currency)}</strong>/ano`;
+  }
+}
+
 function openSubModal(id) {
   const isEdit = !!id;
   document.getElementById('subModalTitle').textContent = isEdit ? 'Editar Assinatura' : 'Nova Assinatura';
@@ -2756,6 +2789,7 @@ function openSubModal(id) {
     if (!s) return;
     document.getElementById('subName').value = s.name;
     document.getElementById('subIcon').value = s.icon || '';
+    document.getElementById('subBillingCycle').value = s.billingCycle || 'monthly';
     document.getElementById('subAmount').value = s.amount;
     document.getElementById('subCurrency').value = s.currency;
     document.getElementById('subCategory').value = s.category;
@@ -2766,6 +2800,7 @@ function openSubModal(id) {
   } else {
     document.getElementById('subName').value = '';
     document.getElementById('subIcon').value = '';
+    document.getElementById('subBillingCycle').value = 'monthly';
     document.getElementById('subAmount').value = '';
     document.getElementById('subCurrency').value = DB.settings.baseCurrency;
     document.getElementById('subCategory').value = 'Assinaturas';
@@ -2774,15 +2809,19 @@ function openSubModal(id) {
     document.getElementById('subActive').checked = true;
     document.getElementById('subAutoCreate').checked = true;
   }
+  updateSubAmountLabel();
+  updateSubEquivalent();
   openModal('subModalOverlay');
 }
 
 function saveSub() {
   const id = document.getElementById('subEditId').value;
+  const billingCycle = document.getElementById('subBillingCycle').value;
   const obj = {
     id: id || uid(),
     name: document.getElementById('subName').value,
     icon: document.getElementById('subIcon').value,
+    billingCycle: billingCycle,
     amount: parseFloat(document.getElementById('subAmount').value)||0,
     currency: document.getElementById('subCurrency').value,
     category: document.getElementById('subCategory').value,
@@ -2824,15 +2863,20 @@ function renderSubscriptions() {
   if (!DB.subscriptions) DB.subscriptions = [];
   const bc = DB.settings.baseCurrency;
   const active = DB.subscriptions.filter(s=>s.active);
-  const totalMonthly = active.reduce((s,x)=>s+x.amount, 0);
-  const totalYearly = totalMonthly * 12;
+  // Calculate true monthly cost: monthly subs = amount, yearly subs = amount/12
+  const totalMonthly = active.reduce((s,x) => {
+    return s + (x.billingCycle === 'yearly' ? x.amount / 12 : x.amount);
+  }, 0);
+  const totalYearly = active.reduce((s,x) => {
+    return s + (x.billingCycle === 'yearly' ? x.amount : x.amount * 12);
+  }, 0);
 
   const upcoming = getUpcomingSubscriptions(7).length;
 
   document.getElementById('subSummary').innerHTML = `
     <div class="card"><div class="card-title">Assinaturas Ativas</div><div class="card-value text-cyan">${active.length}</div></div>
-    <div class="card"><div class="card-title">Custo Mensal</div><div class="card-value text-red">${fmtMoney(totalMonthly,bc)}</div></div>
-    <div class="card"><div class="card-title">Custo Anual</div><div class="card-value text-orange">${fmtMoney(totalYearly,bc)}</div></div>
+    <div class="card"><div class="card-title">Custo Mensal Efetivo</div><div class="card-value text-red">${fmtMoney(totalMonthly,bc)}</div></div>
+    <div class="card"><div class="card-title">Custo Anual Total</div><div class="card-value text-orange">${fmtMoney(totalYearly,bc)}</div></div>
     <div class="card"><div class="card-title">Cobranças em 7 dias</div><div class="card-value ${upcoming>0?'text-orange':'text-green'}">${upcoming}</div></div>
   `;
 
@@ -2843,10 +2887,20 @@ function renderSubscriptions() {
 
   let html = '';
   [...DB.subscriptions].sort((a,b)=>a.name.localeCompare(b.name)).forEach(sub => {
-    const nextDate = subNextDate(sub.lastCharge);
+    const isYearly = sub.billingCycle === 'yearly';
+    const nextDate = subNextDate(sub.lastCharge, sub.billingCycle);
     const daysUntil = daysDiff(nextDate);
     const cls = daysUntil < 0 ? 'overdue' : daysUntil <= 3 ? 'soon' : 'ok';
     const label = daysUntil < 0 ? `Vencida há ${Math.abs(daysUntil)}d` : daysUntil === 0 ? 'Hoje!' : `em ${daysUntil}d`;
+    const cycleBadge = isYearly
+      ? '<span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(168,85,247,0.15);color:var(--accent-purple);font-weight:600;margin-left:8px;">ANUAL</span>'
+      : '<span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(0,212,170,0.1);color:var(--accent-cyan);font-weight:600;margin-left:8px;">MENSAL</span>';
+
+    const mainAmount = fmtMoney(sub.amount, sub.currency);
+    const mainSuffix = isYearly ? '/ano' : '/mês';
+    const secondaryLine = isYearly
+      ? `Equivale a ${fmtMoney(sub.amount / 12, sub.currency)}/mês`
+      : `Anual: ${fmtMoney(sub.amount * 12, sub.currency)}`;
 
     html += `<div class="sub-card${sub.active?'':' paused'}">
       <div style="position:absolute;top:16px;right:16px;display:flex;gap:4px;align-items:center;">
@@ -2859,14 +2913,14 @@ function renderSubscriptions() {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-right:100px;">
         <span style="font-size:34px;line-height:1;">${sub.icon||'📦'}</span>
         <div>
-          <div style="font-size:16px;font-weight:600;">${sub.name}</div>
+          <div style="font-size:16px;font-weight:600;">${sub.name}${cycleBadge}</div>
           <div style="font-size:12px;color:var(--text-muted);">${sub.category}${sub.notes?' · '+sub.notes:''}</div>
         </div>
       </div>
       <div class="flex-between" style="margin-bottom:10px;">
         <div>
-          <div class="mono" style="font-size:22px;font-weight:600;">${fmtMoney(sub.amount,sub.currency)}<span style="font-size:12px;font-weight:400;color:var(--text-muted);"> /mês</span></div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Anual: ${fmtMoney(sub.amount*12,sub.currency)}</div>
+          <div class="mono" style="font-size:22px;font-weight:600;">${mainAmount}<span style="font-size:12px;font-weight:400;color:var(--text-muted);"> ${mainSuffix}</span></div>
+          <div style="font-size:12px;color:${isYearly ? 'var(--accent-purple)' : 'var(--text-muted)'};margin-top:2px;">${secondaryLine}</div>
         </div>
         <div style="text-align:right;">
           ${sub.active ? `<span class="charge-badge ${cls}">${label}</span>` : '<span class="charge-badge" style="background:rgba(90,92,106,0.2);color:var(--text-muted)">Pausada</span>'}
@@ -3044,14 +3098,14 @@ loadGHConfigUI();
   subs.forEach(sub => {
     let current = sub.lastCharge;
     let safety = 0;
-    while (daysDiff(subNextDate(current)) <= 0 && safety < 24) {
-      const nextDate = subNextDate(current);
+    while (daysDiff(subNextDate(current, sub.billingCycle)) <= 0 && safety < 24) {
+      const nextDate = subNextDate(current, sub.billingCycle);
       const alreadyExists = DB.transactions.some(t => t.subscriptionId === sub.id && t.date === nextDate);
       if (!alreadyExists) {
         DB.transactions.push({
           id: uid(), type:'expense', date:nextDate,
           description:sub.name, amount:sub.amount, currency:sub.currency,
-          category:sub.category, notes:'Cobrança automática de assinatura',
+          category:sub.category, notes: sub.billingCycle === 'yearly' ? 'Cobrança anual automática' : 'Cobrança automática de assinatura',
           subscriptionId:sub.id
         });
         changed = true;
