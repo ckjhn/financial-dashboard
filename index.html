@@ -1,0 +1,2375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT — Finance Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   CSS VARIABLES & RESET
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-card: #151d2e;
+  --bg-card-hover: #1a2440;
+  --bg-input: #0d1525;
+  --border: #1e2a42;
+  --border-focus: #00d4aa;
+  --text-primary: #e8ecf4;
+  --text-secondary: #7b8ba5;
+  --text-muted: #4a5568;
+  --accent: #00d4aa;
+  --accent-dim: rgba(0,212,170,0.15);
+  --accent-glow: rgba(0,212,170,0.3);
+  --green: #00e68a;
+  --green-dim: rgba(0,230,138,0.12);
+  --red: #ff4757;
+  --red-dim: rgba(255,71,87,0.12);
+  --yellow: #ffc107;
+  --yellow-dim: rgba(255,193,7,0.12);
+  --blue: #4da6ff;
+  --blue-dim: rgba(77,166,255,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --orange: #ff9f43;
+  --sidebar-w: 260px;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Outfit', sans-serif;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-glow: 0 0 30px rgba(0,212,170,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: var(--transition);
+}
+
+.sidebar-logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sidebar-logo .logo-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--accent), #006b55);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0,212,170,0.3);
+}
+
+.sidebar-logo h1 {
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 700;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, var(--accent), #4da6ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.sidebar-logo .version {
+  font-size: 10px; color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+
+.nav-section {
+  margin-bottom: 8px;
+}
+
+.nav-section-title {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 2px;
+  color: var(--text-muted);
+  padding: 8px 12px 4px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500; font-size: 13px;
+  transition: var(--transition);
+  position: relative;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+
+.nav-item.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 20px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+
+.nav-item .nav-icon { font-size: 18px; width: 24px; text-align: center; }
+
+.nav-item .nav-badge {
+  margin-left: auto;
+  background: var(--accent);
+  color: #000;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+}
+
+/* Main */
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  padding: 24px 28px;
+  min-height: 100vh;
+}
+
+.panel { display: none; animation: fadeIn 0.35s ease; }
+.panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMMON COMPONENTS
+   ═══════════════════════════════════════════════════════════════ */
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-header h2 {
+  font-size: 22px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.panel-header h2 span { font-size: 24px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn:hover { background: var(--bg-card-hover); border-color: var(--text-muted); }
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.btn-primary:hover { background: #00e6b8; box-shadow: 0 0 20px var(--accent-glow); }
+
+.btn-danger { background: var(--red-dim); color: var(--red); border-color: rgba(255,71,87,0.3); }
+.btn-danger:hover { background: rgba(255,71,87,0.25); }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.card:hover { border-color: rgba(255,255,255,0.08); }
+
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.stat-card .stat-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.stat-card .stat-value {
+  font-family: var(--font-mono);
+  font-size: 24px; font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-card .stat-change {
+  font-size: 12px; font-weight: 500;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+.stat-card .stat-change.positive { color: var(--green); }
+.stat-card .stat-change.negative { color: var(--red); }
+
+/* Forms */
+input, select, textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  transition: var(--transition);
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+select { cursor: pointer; }
+
+label {
+  display: block;
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.active { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  width: 90%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+  transform: scale(0.95);
+  transition: transform 0.3s;
+}
+
+.modal-overlay.active .modal { transform: scale(1); }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 { font-size: 18px; font-weight: 600; }
+
+.modal-close {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.modal-close:hover { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+
+.modal-actions {
+  display: flex; gap: 12px; justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(30,42,66,0.5);
+}
+
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.data-table .mono { font-family: var(--font-mono); font-weight: 500; }
+.data-table .positive { color: var(--green); }
+.data-table .negative { color: var(--red); }
+
+/* Tags */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.tag-green { background: var(--green-dim); color: var(--green); }
+.tag-red { background: var(--red-dim); color: var(--red); }
+.tag-blue { background: var(--blue-dim); color: var(--blue); }
+.tag-yellow { background: var(--yellow-dim); color: var(--yellow); }
+.tag-purple { background: var(--purple-dim); color: var(--purple); }
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h3 { font-size: 16px; color: var(--text-secondary); margin-bottom: 8px; }
+.empty-state p { font-size: 13px; max-width: 360px; margin: 0 auto; }
+
+/* Allocation Pills (Dashboard) */
+.alloc-pills {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.alloc-pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-mono);
+}
+
+.alloc-pill:hover { border-color: var(--accent); color: var(--text-primary); }
+.alloc-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* Charts area */
+.chart-container {
+  position: relative;
+  height: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  overflow: hidden;
+}
+
+.mini-chart {
+  height: 160px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* Ticker bar */
+.ticker-bar {
+  display: flex; gap: 24px;
+  padding: 10px 0;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.ticker-item {
+  display: flex; align-items: center; gap: 10px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.ticker-item .ticker-symbol { font-weight: 600; color: var(--text-primary); }
+.ticker-item .ticker-value { color: var(--text-secondary); }
+.ticker-item .ticker-change { font-weight: 600; }
+
+/* Progress */
+.progress-bar {
+  height: 8px;
+  background: var(--bg-input);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s ease;
+  background: linear-gradient(90deg, var(--accent), #4da6ff);
+}
+
+/* AI Chat */
+.ai-chat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex; flex-direction: column;
+  height: 540px;
+}
+
+.ai-chat-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+
+.ai-chat-header .ai-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.ai-chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.ai-msg {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.ai-msg.bot {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+}
+
+.ai-msg.user {
+  background: var(--accent-dim);
+  border: 1px solid rgba(0,212,170,0.2);
+  align-self: flex-end;
+  color: var(--accent);
+}
+
+.ai-chat-input {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px;
+}
+
+.ai-chat-input input {
+  flex: 1;
+}
+
+/* Action buttons in table */
+.action-btns { display: flex; gap: 6px; }
+.action-btn {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: var(--transition);
+}
+.action-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+.action-btn.delete:hover { color: var(--red); border-color: var(--red); }
+
+/* Canvas for chart drawing */
+canvas.chart-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Currency converter */
+.converter-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.converter-arrow {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--accent);
+  padding: 10px 0;
+}
+
+/* Forecast scenario tabs */
+.scenario-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.scenario-tab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.scenario-tab:hover { border-color: var(--text-muted); }
+.scenario-tab.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; padding: 16px; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Live indicator */
+.live-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 1.5s infinite;
+}
+
+/* Glow accent line */
+.glow-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  margin: 20px 0;
+  opacity: 0.4;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">V</div>
+      <div>
+        <h1>VAULT</h1>
+        <div class="version">v2.0 • Terminal</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Principal</div>
+        <div class="nav-item active" data-panel="dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" data-panel="transactions">
+          <span class="nav-icon">💸</span> Transações
+        </div>
+        <div class="nav-item" data-panel="allocations">
+          <span class="nav-icon">📋</span> Alocações
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Gestão</div>
+        <div class="nav-item" data-panel="subscriptions">
+          <span class="nav-icon">🔄</span> Assinaturas
+        </div>
+        <div class="nav-item" data-panel="investments">
+          <span class="nav-icon">📈</span> Investimentos
+        </div>
+        <div class="nav-item" data-panel="currencies">
+          <span class="nav-icon">💱</span> Moedas
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Planejamento</div>
+        <div class="nav-item" data-panel="goals">
+          <span class="nav-icon">🎯</span> Metas
+        </div>
+        <div class="nav-item" data-panel="forecast">
+          <span class="nav-icon">🔮</span> Previsão
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Inteligência</div>
+        <div class="nav-item" data-panel="ai">
+          <span class="nav-icon">🤖</span> ARIA <span class="nav-badge">AI</span>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <main class="main-content">
+
+    <!-- ███ DASHBOARD ███ -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="panel-header">
+        <h2><span>📊</span> Dashboard</h2>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted)">
+          <span class="live-dot"></span> Atualizado em tempo real
+        </div>
+      </div>
+
+      <div class="alloc-pills" id="dash-alloc-pills">
+        <div class="alloc-pill active" data-alloc="all">Visão Geral</div>
+      </div>
+
+      <div class="grid-4" id="dash-stats">
+        <div class="stat-card">
+          <div class="stat-label">Saldo Total</div>
+          <div class="stat-value" id="dash-balance" style="color:var(--green)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Receita Mensal</div>
+          <div class="stat-value" id="dash-income">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Despesas Mensais</div>
+          <div class="stat-value" id="dash-expenses" style="color:var(--red)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Margem Líquida</div>
+          <div class="stat-value" id="dash-margin">R$ 0,00</div>
+          <div class="stat-change" id="dash-margin-pct"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px" class="grid-2">
+        <div>
+          <h3 style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;font-weight:600">Alocações do Salário</h3>
+          <div id="dash-alloc-cards" class="grid-2"></div>
+        </div>
+        <div>
+          <h3 style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;font-weight:600">Transações Recentes</h3>
+          <div class="card" style="max-height:320px;overflow-y:auto">
+            <table class="data-table">
+              <thead><tr><th>Data</th><th>Desc</th><th>Valor</th></tr></thead>
+              <tbody id="dash-recent-tx"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <h3 style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;font-weight:600">Fluxo Mensal</h3>
+        <div class="chart-container">
+          <canvas id="dash-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ███ TRANSACTIONS ███ -->
+    <div class="panel" id="panel-transactions">
+      <div class="panel-header">
+        <h2><span>💸</span> Transações</h2>
+        <button class="btn btn-primary" onclick="openModal('tx-modal')">+ Nova Transação</button>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-label">Total Receitas</div>
+          <div class="stat-value positive" id="tx-total-income">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Despesas</div>
+          <div class="stat-value negative" id="tx-total-expenses">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Balanço</div>
+          <div class="stat-value" id="tx-balance">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th><th>Descrição</th><th>Tipo</th><th>Categoria</th><th>Alocação</th><th>Valor</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tx-table-body"></tbody>
+        </table>
+        <div class="empty-state" id="tx-empty">
+          <div class="empty-icon">💸</div>
+          <h3>Nenhuma transação</h3>
+          <p>Registre suas receitas e despesas para começar a acompanhar suas finanças.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ███ ALLOCATIONS ███ -->
+    <div class="panel" id="panel-allocations">
+      <div class="panel-header">
+        <h2><span>📋</span> Alocações</h2>
+        <button class="btn btn-primary" onclick="openModal('alloc-modal')">+ Nova Alocação</button>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;padding:16px 20px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted)">Total Alocado</span>
+            <div id="alloc-total-pct" style="font-family:var(--font-mono);font-size:28px;font-weight:700;margin-top:4px">0%</div>
+          </div>
+          <div style="text-align:right">
+            <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted)">Valor Distribuível</span>
+            <div id="alloc-distributable" style="font-family:var(--font-mono);font-size:28px;font-weight:700;margin-top:4px;color:var(--accent)">R$ 0,00</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Salário − Assinaturas</div>
+          </div>
+        </div>
+        <div class="progress-bar" style="margin-top:16px">
+          <div class="progress-fill" id="alloc-progress" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="grid-3" id="alloc-cards"></div>
+
+      <div class="empty-state" id="alloc-empty" style="display:none">
+        <div class="empty-icon">📋</div>
+        <h3>Nenhuma alocação criada</h3>
+        <p>Crie alocações para distribuir automaticamente seu salário.</p>
+      </div>
+    </div>
+
+    <!-- ███ SUBSCRIPTIONS ███ -->
+    <div class="panel" id="panel-subscriptions">
+      <div class="panel-header">
+        <h2><span>🔄</span> Assinaturas</h2>
+        <button class="btn btn-primary" onclick="openModal('sub-modal')">+ Nova Assinatura</button>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-label">Custo Mensal</div>
+          <div class="stat-value" id="sub-monthly" style="color:var(--orange)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Custo Anual</div>
+          <div class="stat-value" id="sub-annual">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Assinaturas</div>
+          <div class="stat-value" id="sub-count" style="font-family:var(--font-mono)">0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr><th>Nome</th><th>Valor</th><th>Cobrança</th><th>Custo Mensal</th><th>Status</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="sub-table-body"></tbody>
+        </table>
+        <div class="empty-state" id="sub-empty">
+          <div class="empty-icon">🔄</div>
+          <h3>Nenhuma assinatura</h3>
+          <p>Adicione suas assinaturas para monitorar gastos recorrentes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ███ INVESTMENTS ███ -->
+    <div class="panel" id="panel-investments">
+      <div class="panel-header">
+        <h2><span>📈</span> Investimentos</h2>
+        <button class="btn btn-primary" onclick="openModal('invest-modal')">+ Novo Investimento</button>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:20px">
+        <div class="stat-card">
+          <div class="stat-label">Patrimônio Total</div>
+          <div class="stat-value" id="inv-total" style="color:var(--green)">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Investido</div>
+          <div class="stat-value" id="inv-invested">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Retorno Total</div>
+          <div class="stat-value" id="inv-return">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Retorno %</div>
+          <div class="stat-value" id="inv-return-pct" style="font-family:var(--font-mono)">0.00%</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr><th>Nome</th><th>Categoria</th><th>Investido</th><th>Valor Atual</th><th>Retorno</th><th>Ações</th></tr>
+          </thead>
+          <tbody id="inv-table-body"></tbody>
+        </table>
+        <div class="empty-state" id="inv-empty">
+          <div class="empty-icon">📈</div>
+          <h3>Nenhum investimento</h3>
+          <p>Registre seus investimentos para acompanhar rentabilidade e patrimônio.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ███ CURRENCIES ███ -->
+    <div class="panel" id="panel-currencies">
+      <div class="panel-header">
+        <h2><span>💱</span> Câmbio & Moedas</h2>
+        <button class="btn" onclick="loadCurrencyRates()">🔄 Atualizar Cotações</button>
+      </div>
+
+      <div class="ticker-bar" id="currency-ticker"></div>
+
+      <div class="grid-2">
+        <div class="converter-box">
+          <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">Conversor</h3>
+          <div class="form-group">
+            <label>De</label>
+            <div style="display:flex;gap:10px">
+              <input type="number" id="conv-amount" value="1" min="0" step="0.01" style="flex:1">
+              <select id="conv-from" style="width:120px">
+                <option value="BRL">BRL 🇧🇷</option>
+                <option value="USD">USD 🇺🇸</option>
+                <option value="EUR">EUR 🇪🇺</option>
+                <option value="GBP">GBP 🇬🇧</option>
+                <option value="JPY">JPY 🇯🇵</option>
+                <option value="ARS">ARS 🇦🇷</option>
+                <option value="BTC">BTC ₿</option>
+              </select>
+            </div>
+          </div>
+          <div class="converter-arrow">⇅</div>
+          <div class="form-group">
+            <label>Para</label>
+            <div style="display:flex;gap:10px">
+              <input type="text" id="conv-result" readonly style="flex:1;font-family:var(--font-mono);font-size:18px;font-weight:600;color:var(--accent)">
+              <select id="conv-to" style="width:120px">
+                <option value="USD">USD 🇺🇸</option>
+                <option value="BRL">BRL 🇧🇷</option>
+                <option value="EUR">EUR 🇪🇺</option>
+                <option value="GBP">GBP 🇬🇧</option>
+                <option value="JPY">JPY 🇯🇵</option>
+                <option value="ARS">ARS 🇦🇷</option>
+                <option value="BTC">BTC ₿</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="convertCurrency()">Converter</button>
+        </div>
+
+        <div>
+          <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">Taxas em relação ao BRL</h3>
+          <div class="card" style="max-height:380px;overflow-y:auto">
+            <table class="data-table">
+              <thead><tr><th>Moeda</th><th>Compra</th><th>Venda</th><th>Variação</th></tr></thead>
+              <tbody id="currency-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ███ GOALS ███ -->
+    <div class="panel" id="panel-goals">
+      <div class="panel-header">
+        <h2><span>🎯</span> Metas & Objetivos</h2>
+        <button class="btn btn-primary" onclick="openModal('goal-modal')">+ Nova Meta</button>
+      </div>
+
+      <div class="grid-2" id="goal-cards"></div>
+
+      <div class="empty-state" id="goal-empty">
+        <div class="empty-icon">🎯</div>
+        <h3>Nenhuma meta definida</h3>
+        <p>Crie metas financeiras para acompanhar seu progresso e manter o foco.</p>
+      </div>
+    </div>
+
+    <!-- ███ FORECAST ███ -->
+    <div class="panel" id="panel-forecast">
+      <div class="panel-header">
+        <h2><span>🔮</span> Previsão Financeira</h2>
+      </div>
+
+      <div class="scenario-tabs">
+        <div class="scenario-tab active" data-scenario="realistic">📊 Realista</div>
+        <div class="scenario-tab" data-scenario="optimistic">📈 Otimista</div>
+        <div class="scenario-tab" data-scenario="pessimistic">📉 Pessimista</div>
+      </div>
+
+      <div class="chart-container" style="height:320px;margin-bottom:20px">
+        <canvas id="forecast-chart"></canvas>
+      </div>
+
+      <div class="grid-3" id="forecast-cards"></div>
+    </div>
+
+    <!-- ███ AI ███ -->
+    <div class="panel" id="panel-ai">
+      <div class="panel-header">
+        <h2><span>🤖</span> ARIA — Análise Inteligente</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="ai-chat">
+          <div class="ai-chat-header">
+            <div class="ai-dot"></div>
+            <div>
+              <div style="font-weight:600;font-size:14px">ARIA</div>
+              <div style="font-size:11px;color:var(--text-muted)">Assistente de Inteligência Financeira</div>
+            </div>
+          </div>
+          <div class="ai-chat-messages" id="ai-messages">
+            <div class="ai-msg bot">👋 Olá! Eu sou a <strong>ARIA</strong>, sua assistente de inteligência financeira.\n\nPosso analisar sua saúde financeira, assinaturas, investimentos, metas e mais.\n\nExperimente: "saúde financeira", "dicas", "relatório"</div>
+          </div>
+          <div class="ai-chat-input">
+            <input type="text" id="ai-input" placeholder="Pergunte algo..." onkeydown="if(event.key==='Enter')sendAIMessage()">
+            <button class="btn btn-primary" onclick="sendAIMessage()">Enviar</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="stat-card" style="margin-bottom:16px">
+            <div class="stat-label">Nota de Saúde Financeira</div>
+            <div id="ai-score" style="font-family:var(--font-mono);font-size:48px;font-weight:700;color:var(--accent)">—</div>
+            <div id="ai-grade" style="font-size:13px;color:var(--text-secondary);margin-top:4px"></div>
+          </div>
+          <div id="ai-insights" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Transaction Modal -->
+<div class="modal-overlay" id="tx-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="tx-modal-title">Nova Transação</h3>
+      <div class="modal-close" onclick="closeModal('tx-modal')">✕</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="tx-type" onchange="onTxTypeChange()">
+          <option value="income">Receita</option>
+          <option value="expense">Despesa</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="tx-date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Descrição</label>
+      <input type="text" id="tx-desc" placeholder="Ex: Salário, Aluguel...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="tx-amount" min="0" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="tx-category">
+          <option value="salary">Salário</option>
+          <option value="freelance">Freelance</option>
+          <option value="investment_return">Retorno Investimento</option>
+          <option value="other_income">Outra Receita</option>
+          <option value="food">Alimentação</option>
+          <option value="transport">Transporte</option>
+          <option value="housing">Moradia</option>
+          <option value="health">Saúde</option>
+          <option value="education">Educação</option>
+          <option value="entertainment">Entretenimento</option>
+          <option value="shopping">Compras</option>
+          <option value="other_expense">Outra Despesa</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="tx-alloc-group" style="display:none">
+      <label>Sair da Alocação</label>
+      <select id="tx-alloc-select">
+        <option value="">— Nenhuma —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label><input type="checkbox" id="tx-is-salary" style="width:auto;margin-right:8px"> Marcar como Salário (distribui para alocações)</label>
+    </div>
+    <input type="hidden" id="tx-edit-id">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('tx-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTransaction()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Allocation Modal -->
+<div class="modal-overlay" id="alloc-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="alloc-modal-title">Nova Alocação</h3>
+      <div class="modal-close" onclick="closeModal('alloc-modal')">✕</div>
+    </div>
+    <div class="form-group">
+      <label>Nome</label>
+      <input type="text" id="alloc-name" placeholder="Ex: Investimentos, Hobby, Futuro...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Porcentagem (%)</label>
+        <input type="number" id="alloc-pct" min="0" max="100" step="1" placeholder="25">
+      </div>
+      <div class="form-group">
+        <label>Cor</label>
+        <select id="alloc-color">
+          <option value="#00d4aa">Verde Menta</option>
+          <option value="#4da6ff">Azul</option>
+          <option value="#a78bfa">Roxo</option>
+          <option value="#ff9f43">Laranja</option>
+          <option value="#ff4757">Vermelho</option>
+          <option value="#ffc107">Amarelo</option>
+          <option value="#00e68a">Verde</option>
+          <option value="#ff6b81">Rosa</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Ícone (emoji)</label>
+      <input type="text" id="alloc-icon" placeholder="💰" maxlength="4" value="💰">
+    </div>
+    <input type="hidden" id="alloc-edit-id">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('alloc-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAllocation()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subscription Modal -->
+<div class="modal-overlay" id="sub-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="sub-modal-title">Nova Assinatura</h3>
+      <div class="modal-close" onclick="closeModal('sub-modal')">✕</div>
+    </div>
+    <div class="form-group">
+      <label>Nome</label>
+      <input type="text" id="sub-name" placeholder="Ex: Netflix, Spotify...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor (R$)</label>
+        <input type="number" id="sub-amount" min="0" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label>Cobrança</label>
+        <select id="sub-billing">
+          <option value="monthly">Mensal</option>
+          <option value="annual">Anual</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="sub-status">
+        <option value="active">Ativa</option>
+        <option value="paused">Pausada</option>
+      </select>
+    </div>
+    <input type="hidden" id="sub-edit-id">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('sub-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSubscription()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Investment Modal -->
+<div class="modal-overlay" id="invest-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="invest-modal-title">Novo Investimento</h3>
+      <div class="modal-close" onclick="closeModal('invest-modal')">✕</div>
+    </div>
+    <div class="form-group">
+      <label>Nome</label>
+      <input type="text" id="inv-name" placeholder="Ex: Tesouro Selic, AAPL, BTC...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="inv-category">
+          <option value="Renda Fixa">Renda Fixa</option>
+          <option value="Ações">Ações</option>
+          <option value="FIIs">FIIs</option>
+          <option value="Cripto">Cripto</option>
+          <option value="ETF">ETF</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Data de Compra</label>
+        <input type="date" id="inv-date">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor Investido (R$)</label>
+        <input type="number" id="inv-amount" min="0" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label>Valor Atual (R$)</label>
+        <input type="number" id="inv-current" min="0" step="0.01" placeholder="0,00">
+      </div>
+    </div>
+    <input type="hidden" id="inv-edit-id">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('invest-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveInvestment()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="modal-overlay" id="goal-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="goal-modal-title">Nova Meta</h3>
+      <div class="modal-close" onclick="closeModal('goal-modal')">✕</div>
+    </div>
+    <div class="form-group">
+      <label>Nome da Meta</label>
+      <input type="text" id="goal-name" placeholder="Ex: Viagem, Carro, Reserva...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Valor Alvo (R$)</label>
+        <input type="number" id="goal-target" min="0" step="0.01" placeholder="0,00">
+      </div>
+      <div class="form-group">
+        <label>Valor Atual (R$)</label>
+        <input type="number" id="goal-current" min="0" step="0.01" placeholder="0,00" value="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Prazo</label>
+        <input type="date" id="goal-deadline">
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select id="goal-priority">
+          <option value="high">Alta</option>
+          <option value="medium">Média</option>
+          <option value="low">Baixa</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Ícone (emoji)</label>
+      <input type="text" id="goal-icon" placeholder="🎯" maxlength="4" value="🎯">
+    </div>
+    <input type="hidden" id="goal-edit-id">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('goal-modal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveGoal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Load AI Engine -->
+<script src="assets/ai-engine.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   STATE & DATA
+   ═══════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = "vault_finance_data";
+
+let state = {
+  transactions: [],
+  allocations: [],
+  subscriptions: [],
+  investments: [],
+  goals: [],
+  settings: { currency: "BRL" },
+};
+
+const ai = new FinanceAI();
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function load() {
+  const d = localStorage.getItem(STORAGE_KEY);
+  if (d) {
+    try { state = JSON.parse(d); } catch(e) {}
+  }
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function fmt(v) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+}
+
+function fmtDate(d) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════ */
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+    item.classList.add("active");
+    const panel = item.dataset.panel;
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("panel-" + panel).classList.add("active");
+    refreshPanel(panel);
+  });
+});
+
+function refreshPanel(name) {
+  switch(name) {
+    case "dashboard": refreshDashboard(); break;
+    case "transactions": refreshTransactions(); break;
+    case "allocations": refreshAllocations(); break;
+    case "subscriptions": refreshSubscriptions(); break;
+    case "investments": refreshInvestments(); break;
+    case "currencies": loadCurrencyRates(); break;
+    case "goals": refreshGoals(); break;
+    case "forecast": refreshForecast(); break;
+    case "ai": refreshAI(); break;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODALS
+   ═══════════════════════════════════════════════════════════════ */
+function openModal(id) { document.getElementById(id).classList.add("active"); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove("active");
+  // Reset forms
+  if (id === "tx-modal") { document.getElementById("tx-edit-id").value = ""; document.getElementById("tx-modal-title").textContent = "Nova Transação"; }
+  if (id === "alloc-modal") { document.getElementById("alloc-edit-id").value = ""; document.getElementById("alloc-modal-title").textContent = "Nova Alocação"; }
+  if (id === "sub-modal") { document.getElementById("sub-edit-id").value = ""; document.getElementById("sub-modal-title").textContent = "Nova Assinatura"; }
+  if (id === "invest-modal") { document.getElementById("inv-edit-id").value = ""; document.getElementById("invest-modal-title").textContent = "Novo Investimento"; }
+  if (id === "goal-modal") { document.getElementById("goal-edit-id").value = ""; document.getElementById("goal-modal-title").textContent = "Nova Meta"; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function getMonthlySubscriptionTotal() {
+  return state.subscriptions
+    .filter(s => s.status === "active")
+    .reduce((sum, s) => sum + (s.billing === "annual" ? s.amount / 12 : s.amount), 0);
+}
+
+function getLatestSalary() {
+  const salaryTx = state.transactions
+    .filter(t => t.isSalary)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  return salaryTx.length > 0 ? salaryTx[0].amount : 0;
+}
+
+function getDistributableAmount() {
+  const salary = getLatestSalary();
+  const subs = getMonthlySubscriptionTotal();
+  return Math.max(0, salary - subs);
+}
+
+function getMonthlyIncome() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  return state.transactions
+    .filter(t => { const d = new Date(t.date + "T00:00:00"); return t.type === "income" && d.getFullYear() === y && d.getMonth() === m; })
+    .reduce((s, t) => s + t.amount, 0);
+}
+
+function getMonthlyExpenses() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  return state.transactions
+    .filter(t => { const d = new Date(t.date + "T00:00:00"); return t.type === "expense" && d.getFullYear() === y && d.getMonth() === m; })
+    .reduce((s, t) => s + t.amount, 0) + getMonthlySubscriptionTotal();
+}
+
+function getTotalBalance() {
+  const income = state.transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const expense = state.transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  return income - expense;
+}
+
+function getAllocationBalance(allocId) {
+  const alloc = state.allocations.find(a => a.id === allocId);
+  if (!alloc) return 0;
+
+  // Total credited from salary distributions
+  let credited = 0;
+  const salaryTxs = state.transactions.filter(t => t.isSalary);
+  salaryTxs.forEach(tx => {
+    const subTotal = getMonthlySubscriptionTotal();
+    const distributable = Math.max(0, tx.amount - subTotal);
+    credited += distributable * (alloc.percentage / 100);
+  });
+
+  // Total debited (expenses assigned to this allocation)
+  const debited = state.transactions
+    .filter(t => t.type === "expense" && t.allocationId === allocId)
+    .reduce((s, t) => s + t.amount, 0);
+
+  return credited - debited;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TRANSACTIONS
+   ═══════════════════════════════════════════════════════════════ */
+function onTxTypeChange() {
+  const type = document.getElementById("tx-type").value;
+  const allocGroup = document.getElementById("tx-alloc-group");
+  const catSelect = document.getElementById("tx-category");
+
+  if (type === "expense") {
+    allocGroup.style.display = "block";
+    // Populate allocation dropdown
+    const sel = document.getElementById("tx-alloc-select");
+    sel.innerHTML = '<option value="">— Nenhuma —</option>';
+    state.allocations.forEach(a => {
+      sel.innerHTML += `<option value="${a.id}">${a.icon} ${a.name} (${a.percentage}%)</option>`;
+    });
+    // Show expense categories
+    catSelect.innerHTML = `
+      <option value="food">Alimentação</option>
+      <option value="transport">Transporte</option>
+      <option value="housing">Moradia</option>
+      <option value="health">Saúde</option>
+      <option value="education">Educação</option>
+      <option value="entertainment">Entretenimento</option>
+      <option value="shopping">Compras</option>
+      <option value="other_expense">Outra Despesa</option>
+    `;
+  } else {
+    allocGroup.style.display = "none";
+    catSelect.innerHTML = `
+      <option value="salary">Salário</option>
+      <option value="freelance">Freelance</option>
+      <option value="investment_return">Retorno Investimento</option>
+      <option value="other_income">Outra Receita</option>
+    `;
+  }
+}
+
+function saveTransaction() {
+  const editId = document.getElementById("tx-edit-id").value;
+  const tx = {
+    id: editId || uid(),
+    type: document.getElementById("tx-type").value,
+    date: document.getElementById("tx-date").value || new Date().toISOString().split("T")[0],
+    description: document.getElementById("tx-desc").value || "Sem descrição",
+    amount: parseFloat(document.getElementById("tx-amount").value) || 0,
+    category: document.getElementById("tx-category").value,
+    allocationId: document.getElementById("tx-type").value === "expense" ? document.getElementById("tx-alloc-select").value : "",
+    isSalary: document.getElementById("tx-is-salary").checked,
+  };
+
+  if (editId) {
+    const idx = state.transactions.findIndex(t => t.id === editId);
+    if (idx >= 0) state.transactions[idx] = tx;
+  } else {
+    state.transactions.push(tx);
+  }
+
+  save();
+  closeModal("tx-modal");
+  refreshTransactions();
+  refreshDashboard();
+
+  // Reset form
+  document.getElementById("tx-desc").value = "";
+  document.getElementById("tx-amount").value = "";
+  document.getElementById("tx-is-salary").checked = false;
+}
+
+function editTransaction(id) {
+  const tx = state.transactions.find(t => t.id === id);
+  if (!tx) return;
+  document.getElementById("tx-edit-id").value = tx.id;
+  document.getElementById("tx-modal-title").textContent = "Editar Transação";
+  document.getElementById("tx-type").value = tx.type;
+  onTxTypeChange();
+  document.getElementById("tx-date").value = tx.date;
+  document.getElementById("tx-desc").value = tx.description;
+  document.getElementById("tx-amount").value = tx.amount;
+  document.getElementById("tx-category").value = tx.category;
+  if (tx.allocationId) document.getElementById("tx-alloc-select").value = tx.allocationId;
+  document.getElementById("tx-is-salary").checked = tx.isSalary;
+  openModal("tx-modal");
+}
+
+function deleteTransaction(id) {
+  if (!confirm("Excluir esta transação?")) return;
+  state.transactions = state.transactions.filter(t => t.id !== id);
+  save(); refreshTransactions(); refreshDashboard();
+}
+
+function refreshTransactions() {
+  const tbody = document.getElementById("tx-table-body");
+  const empty = document.getElementById("tx-empty");
+  const sorted = [...state.transactions].sort((a, b) => b.date.localeCompare(a.date));
+
+  if (sorted.length === 0) {
+    tbody.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    tbody.innerHTML = sorted.map(tx => {
+      const alloc = state.allocations.find(a => a.id === tx.allocationId);
+      const catLabels = {
+        salary: "Salário", freelance: "Freelance", investment_return: "Ret. Invest.", other_income: "Outra Receita",
+        food: "Alimentação", transport: "Transporte", housing: "Moradia", health: "Saúde",
+        education: "Educação", entertainment: "Entretenimento", shopping: "Compras", other_expense: "Outra Despesa"
+      };
+      return `<tr>
+        <td class="mono">${fmtDate(tx.date)}</td>
+        <td>${tx.description}${tx.isSalary ? ' <span class="tag tag-green">Salário</span>' : ''}</td>
+        <td><span class="tag ${tx.type === 'income' ? 'tag-green' : 'tag-red'}">${tx.type === 'income' ? 'Receita' : 'Despesa'}</span></td>
+        <td>${catLabels[tx.category] || tx.category}</td>
+        <td>${alloc ? `<span class="tag tag-blue">${alloc.icon} ${alloc.name}</span>` : '—'}</td>
+        <td class="mono ${tx.type === 'income' ? 'positive' : 'negative'}">${tx.type === 'income' ? '+' : '-'} ${fmt(tx.amount)}</td>
+        <td><div class="action-btns">
+          <div class="action-btn" onclick="editTransaction('${tx.id}')" title="Editar">✏️</div>
+          <div class="action-btn delete" onclick="deleteTransaction('${tx.id}')" title="Excluir">🗑️</div>
+        </div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  const totalIn = state.transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalOut = state.transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  document.getElementById("tx-total-income").textContent = fmt(totalIn);
+  document.getElementById("tx-total-expenses").textContent = fmt(totalOut);
+  const bal = totalIn - totalOut;
+  document.getElementById("tx-balance").textContent = fmt(bal);
+  document.getElementById("tx-balance").style.color = bal >= 0 ? "var(--green)" : "var(--red)";
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALLOCATIONS
+   ═══════════════════════════════════════════════════════════════ */
+function saveAllocation() {
+  const editId = document.getElementById("alloc-edit-id").value;
+  const alloc = {
+    id: editId || uid(),
+    name: document.getElementById("alloc-name").value || "Sem nome",
+    percentage: parseFloat(document.getElementById("alloc-pct").value) || 0,
+    color: document.getElementById("alloc-color").value,
+    icon: document.getElementById("alloc-icon").value || "💰",
+  };
+
+  if (editId) {
+    const idx = state.allocations.findIndex(a => a.id === editId);
+    if (idx >= 0) state.allocations[idx] = alloc;
+  } else {
+    state.allocations.push(alloc);
+  }
+
+  save();
+  closeModal("alloc-modal");
+  refreshAllocations();
+  refreshDashboard();
+}
+
+function editAllocation(id) {
+  const a = state.allocations.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById("alloc-edit-id").value = a.id;
+  document.getElementById("alloc-modal-title").textContent = "Editar Alocação";
+  document.getElementById("alloc-name").value = a.name;
+  document.getElementById("alloc-pct").value = a.percentage;
+  document.getElementById("alloc-color").value = a.color;
+  document.getElementById("alloc-icon").value = a.icon;
+  openModal("alloc-modal");
+}
+
+function deleteAllocation(id) {
+  if (!confirm("Excluir esta alocação?")) return;
+  state.allocations = state.allocations.filter(a => a.id !== id);
+  save(); refreshAllocations(); refreshDashboard();
+}
+
+function refreshAllocations() {
+  const cards = document.getElementById("alloc-cards");
+  const empty = document.getElementById("alloc-empty");
+  const totalPct = state.allocations.reduce((s, a) => s + a.percentage, 0);
+  const distributable = getDistributableAmount();
+
+  document.getElementById("alloc-total-pct").textContent = totalPct.toFixed(0) + "%";
+  document.getElementById("alloc-total-pct").style.color = Math.abs(totalPct - 100) < 1 ? "var(--green)" : "var(--yellow)";
+  document.getElementById("alloc-distributable").textContent = fmt(distributable);
+  document.getElementById("alloc-progress").style.width = Math.min(100, totalPct) + "%";
+
+  if (state.allocations.length === 0) {
+    cards.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    cards.innerHTML = state.allocations.map(a => {
+      const value = distributable * (a.percentage / 100);
+      const balance = getAllocationBalance(a.id);
+      return `<div class="card" style="border-left:3px solid ${a.color}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:24px">${a.icon}</span>
+            <div>
+              <div style="font-weight:600;font-size:15px">${a.name}</div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-muted)">${a.percentage}%</div>
+            </div>
+          </div>
+          <div class="action-btns">
+            <div class="action-btn" onclick="editAllocation('${a.id}')" title="Editar">✏️</div>
+            <div class="action-btn delete" onclick="deleteAllocation('${a.id}')" title="Excluir">🗑️</div>
+          </div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:${a.color}">${fmt(value)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Por salário • Saldo acumulado: <span style="color:${balance >= 0 ? 'var(--green)' : 'var(--red)'}">${fmt(balance)}</span></div>
+        <div class="progress-bar" style="margin-top:10px">
+          <div class="progress-fill" style="width:${Math.min(100, a.percentage)}%;background:${a.color}"></div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUBSCRIPTIONS
+   ═══════════════════════════════════════════════════════════════ */
+function saveSubscription() {
+  const editId = document.getElementById("sub-edit-id").value;
+  const sub = {
+    id: editId || uid(),
+    name: document.getElementById("sub-name").value || "Sem nome",
+    amount: parseFloat(document.getElementById("sub-amount").value) || 0,
+    billing: document.getElementById("sub-billing").value,
+    status: document.getElementById("sub-status").value,
+  };
+
+  if (editId) {
+    const idx = state.subscriptions.findIndex(s => s.id === editId);
+    if (idx >= 0) state.subscriptions[idx] = sub;
+  } else {
+    state.subscriptions.push(sub);
+  }
+
+  save();
+  closeModal("sub-modal");
+  refreshSubscriptions();
+  refreshDashboard();
+  refreshAllocations();
+}
+
+function editSubscription(id) {
+  const s = state.subscriptions.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById("sub-edit-id").value = s.id;
+  document.getElementById("sub-modal-title").textContent = "Editar Assinatura";
+  document.getElementById("sub-name").value = s.name;
+  document.getElementById("sub-amount").value = s.amount;
+  document.getElementById("sub-billing").value = s.billing;
+  document.getElementById("sub-status").value = s.status;
+  openModal("sub-modal");
+}
+
+function deleteSubscription(id) {
+  if (!confirm("Excluir esta assinatura?")) return;
+  state.subscriptions = state.subscriptions.filter(s => s.id !== id);
+  save(); refreshSubscriptions(); refreshDashboard(); refreshAllocations();
+}
+
+function refreshSubscriptions() {
+  const tbody = document.getElementById("sub-table-body");
+  const empty = document.getElementById("sub-empty");
+
+  if (state.subscriptions.length === 0) {
+    tbody.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    tbody.innerHTML = state.subscriptions.map(s => {
+      const monthly = s.billing === "annual" ? s.amount / 12 : s.amount;
+      return `<tr>
+        <td style="font-weight:600">${s.name}</td>
+        <td class="mono">${fmt(s.amount)}</td>
+        <td><span class="tag ${s.billing === 'monthly' ? 'tag-blue' : 'tag-purple'}">${s.billing === 'monthly' ? 'Mensal' : 'Anual'}</span></td>
+        <td class="mono" style="color:var(--orange)">${fmt(monthly)}/mês</td>
+        <td><span class="tag ${s.status === 'active' ? 'tag-green' : 'tag-yellow'}">${s.status === 'active' ? 'Ativa' : 'Pausada'}</span></td>
+        <td><div class="action-btns">
+          <div class="action-btn" onclick="editSubscription('${s.id}')" title="Editar">✏️</div>
+          <div class="action-btn delete" onclick="deleteSubscription('${s.id}')" title="Excluir">🗑️</div>
+        </div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  const monthlyTotal = getMonthlySubscriptionTotal();
+  const annualTotal = monthlyTotal * 12;
+  document.getElementById("sub-monthly").textContent = fmt(monthlyTotal);
+  document.getElementById("sub-annual").textContent = fmt(annualTotal);
+  document.getElementById("sub-count").textContent = state.subscriptions.filter(s => s.status === "active").length;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INVESTMENTS
+   ═══════════════════════════════════════════════════════════════ */
+function saveInvestment() {
+  const editId = document.getElementById("inv-edit-id").value;
+  const inv = {
+    id: editId || uid(),
+    name: document.getElementById("inv-name").value || "Sem nome",
+    category: document.getElementById("inv-category").value,
+    date: document.getElementById("inv-date").value || new Date().toISOString().split("T")[0],
+    amount: parseFloat(document.getElementById("inv-amount").value) || 0,
+    currentValue: parseFloat(document.getElementById("inv-current").value) || 0,
+  };
+
+  if (editId) {
+    const idx = state.investments.findIndex(i => i.id === editId);
+    if (idx >= 0) state.investments[idx] = inv;
+  } else {
+    state.investments.push(inv);
+  }
+
+  save();
+  closeModal("invest-modal");
+  refreshInvestments();
+}
+
+function editInvestment(id) {
+  const inv = state.investments.find(x => x.id === id);
+  if (!inv) return;
+  document.getElementById("inv-edit-id").value = inv.id;
+  document.getElementById("invest-modal-title").textContent = "Editar Investimento";
+  document.getElementById("inv-name").value = inv.name;
+  document.getElementById("inv-category").value = inv.category;
+  document.getElementById("inv-date").value = inv.date;
+  document.getElementById("inv-amount").value = inv.amount;
+  document.getElementById("inv-current").value = inv.currentValue;
+  openModal("invest-modal");
+}
+
+function deleteInvestment(id) {
+  if (!confirm("Excluir este investimento?")) return;
+  state.investments = state.investments.filter(i => i.id !== id);
+  save(); refreshInvestments();
+}
+
+function refreshInvestments() {
+  const tbody = document.getElementById("inv-table-body");
+  const empty = document.getElementById("inv-empty");
+
+  if (state.investments.length === 0) {
+    tbody.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    tbody.innerHTML = state.investments.map(inv => {
+      const ret = inv.currentValue - inv.amount;
+      const retPct = inv.amount > 0 ? (ret / inv.amount * 100).toFixed(2) : 0;
+      return `<tr>
+        <td style="font-weight:600">${inv.name}</td>
+        <td><span class="tag tag-blue">${inv.category}</span></td>
+        <td class="mono">${fmt(inv.amount)}</td>
+        <td class="mono">${fmt(inv.currentValue)}</td>
+        <td class="mono ${ret >= 0 ? 'positive' : 'negative'}">${ret >= 0 ? '+' : ''}${fmt(ret)} (${retPct}%)</td>
+        <td><div class="action-btns">
+          <div class="action-btn" onclick="editInvestment('${inv.id}')" title="Editar">✏️</div>
+          <div class="action-btn delete" onclick="deleteInvestment('${inv.id}')" title="Excluir">🗑️</div>
+        </div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  const totalInvested = state.investments.reduce((s, i) => s + i.amount, 0);
+  const totalCurrent = state.investments.reduce((s, i) => s + i.currentValue, 0);
+  const totalReturn = totalCurrent - totalInvested;
+  const returnPct = totalInvested > 0 ? (totalReturn / totalInvested * 100).toFixed(2) : "0.00";
+
+  document.getElementById("inv-total").textContent = fmt(totalCurrent);
+  document.getElementById("inv-invested").textContent = fmt(totalInvested);
+  document.getElementById("inv-return").textContent = fmt(totalReturn);
+  document.getElementById("inv-return").style.color = totalReturn >= 0 ? "var(--green)" : "var(--red)";
+  document.getElementById("inv-return-pct").textContent = returnPct + "%";
+  document.getElementById("inv-return-pct").style.color = totalReturn >= 0 ? "var(--green)" : "var(--red)";
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CURRENCIES
+   ═══════════════════════════════════════════════════════════════ */
+let currencyRates = {
+  USD: { buy: 5.15, sell: 5.20, change: -0.8 },
+  EUR: { buy: 5.60, sell: 5.65, change: 0.3 },
+  GBP: { buy: 6.50, sell: 6.57, change: -0.2 },
+  JPY: { buy: 0.034, sell: 0.035, change: 1.1 },
+  ARS: { buy: 0.0048, sell: 0.0052, change: -2.3 },
+  BTC: { buy: 520000, sell: 522000, change: 3.5 },
+  BRL: { buy: 1, sell: 1, change: 0 },
+};
+
+function loadCurrencyRates() {
+  // Simulate live rates with slight randomness
+  const bases = { USD: 5.18, EUR: 5.62, GBP: 6.53, JPY: 0.034, ARS: 0.005, BTC: 521000 };
+  for (const [k, v] of Object.entries(bases)) {
+    const spread = v * 0.005;
+    const variation = (Math.random() - 0.5) * v * 0.02;
+    currencyRates[k] = {
+      buy: parseFloat((v + variation).toFixed(k === "JPY" || k === "ARS" ? 4 : 2)),
+      sell: parseFloat((v + variation + spread).toFixed(k === "JPY" || k === "ARS" ? 4 : 2)),
+      change: parseFloat(((Math.random() - 0.5) * 5).toFixed(2)),
+    };
+  }
+
+  // Ticker
+  const ticker = document.getElementById("currency-ticker");
+  ticker.innerHTML = Object.entries(currencyRates).filter(([k]) => k !== "BRL").map(([k, v]) => `
+    <div class="ticker-item">
+      <span class="ticker-symbol">${k}/BRL</span>
+      <span class="ticker-value">${v.buy.toFixed(k === "BTC" ? 0 : k === "JPY" || k === "ARS" ? 4 : 2)}</span>
+      <span class="ticker-change" style="color:${v.change >= 0 ? 'var(--green)' : 'var(--red)'}">${v.change >= 0 ? '▲' : '▼'} ${Math.abs(v.change)}%</span>
+    </div>
+  `).join("");
+
+  // Table
+  const table = document.getElementById("currency-table");
+  table.innerHTML = Object.entries(currencyRates).filter(([k]) => k !== "BRL").map(([k, v]) => `
+    <tr>
+      <td style="font-weight:600">${k}</td>
+      <td class="mono">${v.buy.toFixed(k === "BTC" ? 0 : k === "JPY" || k === "ARS" ? 4 : 2)}</td>
+      <td class="mono">${v.sell.toFixed(k === "BTC" ? 0 : k === "JPY" || k === "ARS" ? 4 : 2)}</td>
+      <td class="mono" style="color:${v.change >= 0 ? 'var(--green)' : 'var(--red)'}">${v.change >= 0 ? '+' : ''}${v.change}%</td>
+    </tr>
+  `).join("");
+}
+
+function convertCurrency() {
+  const amount = parseFloat(document.getElementById("conv-amount").value) || 0;
+  const from = document.getElementById("conv-from").value;
+  const to = document.getElementById("conv-to").value;
+
+  // Convert to BRL first, then to target
+  const fromRate = from === "BRL" ? 1 : currencyRates[from]?.buy || 1;
+  const toRate = to === "BRL" ? 1 : currencyRates[to]?.sell || 1;
+
+  const brl = amount * fromRate;
+  const result = brl / toRate;
+
+  document.getElementById("conv-result").value = result.toFixed(to === "BTC" ? 8 : 2) + " " + to;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GOALS
+   ═══════════════════════════════════════════════════════════════ */
+function saveGoal() {
+  const editId = document.getElementById("goal-edit-id").value;
+  const goal = {
+    id: editId || uid(),
+    name: document.getElementById("goal-name").value || "Sem nome",
+    targetAmount: parseFloat(document.getElementById("goal-target").value) || 0,
+    currentAmount: parseFloat(document.getElementById("goal-current").value) || 0,
+    deadline: document.getElementById("goal-deadline").value,
+    priority: document.getElementById("goal-priority").value,
+    icon: document.getElementById("goal-icon").value || "🎯",
+  };
+
+  if (editId) {
+    const idx = state.goals.findIndex(g => g.id === editId);
+    if (idx >= 0) state.goals[idx] = goal;
+  } else {
+    state.goals.push(goal);
+  }
+
+  save();
+  closeModal("goal-modal");
+  refreshGoals();
+}
+
+function editGoal(id) {
+  const g = state.goals.find(x => x.id === id);
+  if (!g) return;
+  document.getElementById("goal-edit-id").value = g.id;
+  document.getElementById("goal-modal-title").textContent = "Editar Meta";
+  document.getElementById("goal-name").value = g.name;
+  document.getElementById("goal-target").value = g.targetAmount;
+  document.getElementById("goal-current").value = g.currentAmount;
+  document.getElementById("goal-deadline").value = g.deadline;
+  document.getElementById("goal-priority").value = g.priority;
+  document.getElementById("goal-icon").value = g.icon;
+  openModal("goal-modal");
+}
+
+function deleteGoal(id) {
+  if (!confirm("Excluir esta meta?")) return;
+  state.goals = state.goals.filter(g => g.id !== id);
+  save(); refreshGoals();
+}
+
+function refreshGoals() {
+  const cards = document.getElementById("goal-cards");
+  const empty = document.getElementById("goal-empty");
+
+  if (state.goals.length === 0) {
+    cards.innerHTML = "";
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    const monthlySavings = getMonthlyIncome() - getMonthlyExpenses();
+    cards.innerHTML = state.goals.map(g => {
+      const pct = g.targetAmount > 0 ? Math.min(100, (g.currentAmount / g.targetAmount * 100)).toFixed(1) : 0;
+      const remaining = Math.max(0, g.targetAmount - g.currentAmount);
+      const monthsLeft = monthlySavings > 0 ? Math.ceil(remaining / monthlySavings) : "∞";
+      const priorityColors = { high: "var(--red)", medium: "var(--yellow)", low: "var(--blue)" };
+      const priorityLabels = { high: "Alta", medium: "Média", low: "Baixa" };
+
+      return `<div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:28px">${g.icon}</span>
+            <div>
+              <div style="font-weight:600;font-size:15px">${g.name}</div>
+              <div style="font-size:11px;color:var(--text-muted)">Prazo: ${g.deadline ? fmtDate(g.deadline) : 'Sem prazo'}</div>
+            </div>
+          </div>
+          <div class="action-btns">
+            <div class="action-btn" onclick="editGoal('${g.id}')" title="Editar">✏️</div>
+            <div class="action-btn delete" onclick="deleteGoal('${g.id}')" title="Excluir">🗑️</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+          <span style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--accent)">${fmt(g.currentAmount)}</span>
+          <span style="font-family:var(--font-mono);font-size:13px;color:var(--text-muted)">de ${fmt(g.targetAmount)}</span>
+        </div>
+        <div class="progress-bar" style="margin-bottom:12px">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <span style="color:var(--text-muted)">${pct}% concluído</span>
+          <span style="color:${priorityColors[g.priority]}">● ${priorityLabels[g.priority]}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
+          Faltam ${fmt(remaining)} • ~${monthsLeft} meses no ritmo atual
+        </div>
+      </div>`;
+    }).join("");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORECAST
+   ═══════════════════════════════════════════════════════════════ */
+let currentScenario = "realistic";
+
+document.querySelectorAll(".scenario-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".scenario-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentScenario = tab.dataset.scenario;
+    refreshForecast();
+  });
+});
+
+function refreshForecast() {
+  const data = {
+    totalBalance: getTotalBalance(),
+    monthlyIncome: getMonthlyIncome() || getLatestSalary(),
+    monthlyExpenses: getMonthlyExpenses(),
+    subscriptions: state.subscriptions,
+    allocations: state.allocations,
+    transactions: state.transactions,
+    goals: state.goals,
+    investments: state.investments,
+  };
+
+  const forecast = ai._generateForecast(data);
+  const scenario = forecast[currentScenario];
+
+  // Draw chart
+  drawForecastChart(scenario);
+
+  // Cards
+  const cards = document.getElementById("forecast-cards");
+  const milestones = [
+    { month: 3, label: "3 Meses" },
+    { month: 12, label: "1 Ano" },
+    { month: 60, label: "5 Anos" },
+  ];
+
+  cards.innerHTML = milestones.map(ms => {
+    const proj = scenario.projections.find(p => p.month === ms.month);
+    if (!proj) return "";
+    const diff = proj.balance - data.totalBalance;
+    return `<div class="stat-card">
+      <div class="stat-label">${ms.label} — ${scenario.label}</div>
+      <div class="stat-value" style="color:${proj.balance >= 0 ? 'var(--green)' : 'var(--red)'}; font-size:20px">${fmt(proj.balance)}</div>
+      <div class="stat-change ${diff >= 0 ? 'positive' : 'negative'}">${diff >= 0 ? '▲' : '▼'} ${fmt(Math.abs(diff))}</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">
+        Receita: ${fmt(proj.income)} • Despesa: ${fmt(proj.expenses)}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHARTS (Canvas-based, no dependencies)
+   ═══════════════════════════════════════════════════════════════ */
+function drawForecastChart(scenario) {
+  const canvas = document.getElementById("forecast-chart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 40;
+  canvas.height = rect.height - 40;
+  const W = canvas.width, H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+
+  const data = scenario.projections;
+  if (data.length === 0) return;
+
+  const values = data.map(d => d.balance);
+  const maxV = Math.max(...values) * 1.1;
+  const minV = Math.min(...values, 0) * 1.1;
+  const range = maxV - minV || 1;
+
+  const pad = { left: 70, right: 20, top: 20, bottom: 30 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+
+  // Grid
+  ctx.strokeStyle = "rgba(30,42,66,0.6)";
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (chartH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    const val = maxV - (range / 4) * i;
+    ctx.fillStyle = "#4a5568";
+    ctx.font = "11px 'JetBrains Mono'";
+    ctx.textAlign = "right";
+    ctx.fillText(fmt(val), pad.left - 8, y + 4);
+  }
+
+  // Line
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = pad.left + (chartW / (data.length - 1)) * i;
+    const y = pad.top + chartH - ((d.balance - minV) / range) * chartH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = "#00d4aa";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Fill
+  const lastX = pad.left + chartW;
+  const baseY = pad.top + chartH;
+  ctx.lineTo(lastX, baseY);
+  ctx.lineTo(pad.left, baseY);
+  ctx.closePath();
+  const gradient = ctx.createLinearGradient(0, pad.top, 0, baseY);
+  gradient.addColorStop(0, "rgba(0,212,170,0.2)");
+  gradient.addColorStop(1, "rgba(0,212,170,0.01)");
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Points & labels
+  data.forEach((d, i) => {
+    const x = pad.left + (chartW / (data.length - 1)) * i;
+    const y = pad.top + chartH - ((d.balance - minV) / range) * chartH;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#00d4aa";
+    ctx.fill();
+    ctx.strokeStyle = "#0a0e17";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = "#7b8ba5";
+    ctx.font = "10px 'JetBrains Mono'";
+    ctx.textAlign = "center";
+    ctx.fillText(d.month + "m", x, baseY + 16);
+  });
+}
+
+function drawDashboardChart() {
+  const canvas = document.getElementById("dash-chart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 40;
+  canvas.height = rect.height - 40;
+  const W = canvas.width, H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Get last 6 months data
+  const months = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear(), m = d.getMonth();
+    const income = state.transactions
+      .filter(t => { const td = new Date(t.date + "T00:00:00"); return t.type === "income" && td.getFullYear() === y && td.getMonth() === m; })
+      .reduce((s, t) => s + t.amount, 0);
+    const expense = state.transactions
+      .filter(t => { const td = new Date(t.date + "T00:00:00"); return t.type === "expense" && td.getFullYear() === y && td.getMonth() === m; })
+      .reduce((s, t) => s + t.amount, 0);
+    months.push({
+      label: d.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase(),
+      income, expense
+    });
+  }
+
+  const allVals = months.flatMap(m => [m.income, m.expense]);
+  const maxV = Math.max(...allVals, 1) * 1.2;
+
+  const pad = { left: 70, right: 20, top: 20, bottom: 30 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+  const barW = chartW / months.length;
+  const bw = barW * 0.3;
+
+  // Grid
+  ctx.strokeStyle = "rgba(30,42,66,0.6)";
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (chartH / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    const val = maxV - (maxV / 4) * i;
+    ctx.fillStyle = "#4a5568";
+    ctx.font = "11px 'JetBrains Mono'";
+    ctx.textAlign = "right";
+    ctx.fillText(fmt(val), pad.left - 8, y + 4);
+  }
+
+  months.forEach((m, i) => {
+    const cx = pad.left + barW * i + barW / 2;
+
+    // Income bar
+    const ih = (m.income / maxV) * chartH;
+    ctx.fillStyle = "rgba(0,230,138,0.7)";
+    ctx.beginPath();
+    ctx.roundRect(cx - bw - 2, pad.top + chartH - ih, bw, ih, [4, 4, 0, 0]);
+    ctx.fill();
+
+    // Expense bar
+    const eh = (m.expense / maxV) * chartH;
+    ctx.fillStyle = "rgba(255,71,87,0.7)";
+    ctx.beginPath();
+    ctx.roundRect(cx + 2, pad.top + chartH - eh, bw, eh, [4, 4, 0, 0]);
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = "#7b8ba5";
+    ctx.font = "10px 'JetBrains Mono'";
+    ctx.textAlign = "center";
+    ctx.fillText(m.label, cx, pad.top + chartH + 18);
+  });
+
+  // Legend
+  ctx.fillStyle = "rgba(0,230,138,0.7)";
+  ctx.fillRect(W - 160, 10, 12, 12);
+  ctx.fillStyle = "#7b8ba5";
+  ctx.font = "11px 'Outfit'";
+  ctx.textAlign = "left";
+  ctx.fillText("Receita", W - 142, 20);
+
+  ctx.fillStyle = "rgba(255,71,87,0.7)";
+  ctx.fillRect(W - 80, 10, 12, 12);
+  ctx.fillStyle = "#7b8ba5";
+  ctx.fillText("Despesa", W - 62, 20);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════════ */
+let dashAllocFilter = "all";
+
+function refreshDashboard() {
+  const balance = getTotalBalance();
+  const income = getMonthlyIncome() || getLatestSalary();
+  const expenses = getMonthlyExpenses();
+  const margin = income - expenses;
+
+  document.getElementById("dash-balance").textContent = fmt(balance);
+  document.getElementById("dash-balance").style.color = balance >= 0 ? "var(--green)" : "var(--red)";
+  document.getElementById("dash-income").textContent = fmt(income);
+  document.getElementById("dash-expenses").textContent = fmt(expenses);
+  document.getElementById("dash-margin").textContent = fmt(margin);
+  document.getElementById("dash-margin").style.color = margin >= 0 ? "var(--green)" : "var(--red)";
+
+  const marginPct = income > 0 ? ((margin / income) * 100).toFixed(1) : "0.0";
+  document.getElementById("dash-margin-pct").textContent = `${margin >= 0 ? '▲' : '▼'} ${marginPct}% da renda`;
+  document.getElementById("dash-margin-pct").className = `stat-change ${margin >= 0 ? 'positive' : 'negative'}`;
+
+  // Allocation pills
+  const pills = document.getElementById("dash-alloc-pills");
+  pills.innerHTML = `<div class="alloc-pill ${dashAllocFilter === 'all' ? 'active' : ''}" data-alloc="all" onclick="setDashAlloc('all')">Visão Geral</div>`;
+  state.allocations.forEach(a => {
+    pills.innerHTML += `<div class="alloc-pill ${dashAllocFilter === a.id ? 'active' : ''}" data-alloc="${a.id}" onclick="setDashAlloc('${a.id}')">${a.icon} ${a.name}</div>`;
+  });
+
+  // Allocation cards
+  const allocCards = document.getElementById("dash-alloc-cards");
+  const distributable = getDistributableAmount();
+  if (state.allocations.length === 0) {
+    allocCards.innerHTML = '<div class="card" style="grid-column:span 2;text-align:center;color:var(--text-muted);padding:24px">Crie alocações para ver a distribuição do salário</div>';
+  } else {
+    allocCards.innerHTML = state.allocations.map(a => {
+      const value = distributable * (a.percentage / 100);
+      const balance = getAllocationBalance(a.id);
+      return `<div class="stat-card" style="border-left:3px solid ${a.color};cursor:pointer" onclick="setDashAlloc('${a.id}')">
+        <div class="stat-label">${a.icon} ${a.name} (${a.percentage}%)</div>
+        <div class="stat-value" style="font-size:18px;color:${a.color}">${fmt(value)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Acumulado: ${fmt(balance)}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // Recent transactions (filtered by allocation if selected)
+  const tbody = document.getElementById("dash-recent-tx");
+  let txList = [...state.transactions].sort((a, b) => b.date.localeCompare(a.date));
+  if (dashAllocFilter !== "all") {
+    txList = txList.filter(t => t.allocationId === dashAllocFilter || (t.isSalary && t.type === "income"));
+  }
+  const recent = txList.slice(0, 8);
+
+  if (recent.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px">Nenhuma transação</td></tr>';
+  } else {
+    tbody.innerHTML = recent.map(tx => `
+      <tr>
+        <td class="mono" style="font-size:12px">${fmtDate(tx.date)}</td>
+        <td style="font-size:12px">${tx.description}</td>
+        <td class="mono ${tx.type === 'income' ? 'positive' : 'negative'}" style="font-size:12px">${tx.type === 'income' ? '+' : '-'}${fmt(tx.amount)}</td>
+      </tr>
+    `).join("");
+  }
+
+  drawDashboardChart();
+}
+
+function setDashAlloc(id) {
+  dashAllocFilter = id;
+  refreshDashboard();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AI
+   ═══════════════════════════════════════════════════════════════ */
+function getAIData() {
+  return {
+    totalBalance: getTotalBalance(),
+    monthlyIncome: getMonthlyIncome() || getLatestSalary(),
+    monthlyExpenses: getMonthlyExpenses(),
+    subscriptions: state.subscriptions,
+    allocations: state.allocations,
+    transactions: state.transactions,
+    goals: state.goals,
+    investments: state.investments,
+  };
+}
+
+function sendAIMessage() {
+  const input = document.getElementById("ai-input");
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = "";
+
+  const messagesDiv = document.getElementById("ai-messages");
+  messagesDiv.innerHTML += `<div class="ai-msg user">${escapeHtml(msg)}</div>`;
+
+  const response = ai.chat(msg, getAIData());
+  messagesDiv.innerHTML += `<div class="ai-msg bot">${formatAIResponse(response)}</div>`;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function refreshAI() {
+  const data = getAIData();
+  const analysis = ai.analyzeFinancialHealth(data);
+
+  document.getElementById("ai-score").textContent = analysis.score + "/100";
+  document.getElementById("ai-score").style.color = analysis.grade.color;
+  document.getElementById("ai-grade").textContent = `${analysis.grade.letter} — ${analysis.grade.label}`;
+  document.getElementById("ai-grade").style.color = analysis.grade.color;
+
+  const insightsDiv = document.getElementById("ai-insights");
+  const items = [...analysis.warnings, ...analysis.insights.slice(0, 3), ...analysis.suggestions.slice(0, 2)];
+  insightsDiv.innerHTML = items.map(item => {
+    const icon = item.icon || "💡";
+    const title = item.title || "";
+    const text = item.text || "";
+    const severity = item.severity;
+    let borderColor = "var(--border)";
+    if (severity === "critical" || severity === "high") borderColor = "var(--red)";
+    else if (severity === "medium") borderColor = "var(--yellow)";
+    else if (item.type === "positive") borderColor = "var(--green)";
+
+    return `<div class="card" style="padding:14px;border-left:3px solid ${borderColor}">
+      <div style="font-size:13px"><strong>${icon} ${title}</strong></div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${text}</div>
+    </div>`;
+  }).join("");
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function formatAIResponse(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/---/g, '<div class="glow-line"></div>')
+    .replace(/\n/g, "<br>");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+function init() {
+  load();
+
+  // Set today's date as default
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("tx-date").value = today;
+  document.getElementById("inv-date").value = today;
+
+  onTxTypeChange();
+  refreshDashboard();
+  refreshTransactions();
+  refreshAllocations();
+  refreshSubscriptions();
+  refreshInvestments();
+  refreshGoals();
+  loadCurrencyRates();
+}
+
+init();
+
+// Auto-refresh currency rates every 30s
+setInterval(loadCurrencyRates, 30000);
+
+// Resize charts on window resize
+window.addEventListener("resize", () => {
+  drawDashboardChart();
+  if (document.getElementById("panel-forecast").classList.contains("active")) {
+    refreshForecast();
+  }
+});
+</script>
+</body>
+</html>
