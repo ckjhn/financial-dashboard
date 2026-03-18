@@ -653,7 +653,7 @@ canvas.chart-canvas {
       <div class="logo-icon">V</div>
       <div>
         <h1>VAULT</h1>
-        <div class="version">v2.0 • Terminal</div>
+        <div class="version">v3.0 • Terminal</div>
       </div>
     </div>
     <nav class="sidebar-nav">
@@ -694,6 +694,12 @@ canvas.chart-canvas {
         <div class="nav-section-title">Inteligência</div>
         <div class="nav-item" data-panel="ai">
           <span class="nav-icon">🤖</span> ARIA <span class="nav-badge">AI</span>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Sistema</div>
+        <div class="nav-item" data-panel="settings">
+          <span class="nav-icon">⚙️</span> Configurações
         </div>
       </div>
     </nav>
@@ -838,7 +844,7 @@ canvas.chart-canvas {
         <button class="btn btn-primary" onclick="openModal('sub-modal')">+ Nova Assinatura</button>
       </div>
 
-      <div class="grid-3" style="margin-bottom:20px">
+      <div class="grid-4" style="margin-bottom:20px">
         <div class="stat-card">
           <div class="stat-label">Custo Mensal</div>
           <div class="stat-value" id="sub-monthly" style="color:var(--orange)">R$ 0,00</div>
@@ -851,12 +857,16 @@ canvas.chart-canvas {
           <div class="stat-label">Total Assinaturas</div>
           <div class="stat-value" id="sub-count" style="font-family:var(--font-mono)">0</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-label">Próxima Cobrança</div>
+          <div class="stat-value" id="sub-next-charge" style="font-size:14px;color:var(--yellow)">—</div>
+        </div>
       </div>
 
       <div class="card">
         <table class="data-table">
           <thead>
-            <tr><th>Nome</th><th>Valor</th><th>Cobrança</th><th>Custo Mensal</th><th>Status</th><th>Ações</th></tr>
+            <tr><th>Nome</th><th>Valor</th><th>Cobrança</th><th>Custo Mensal</th><th>Último Pgto</th><th>Próximo Pgto</th><th>Status</th><th>Ações</th></tr>
           </thead>
           <tbody id="sub-table-body"></tbody>
         </table>
@@ -1037,6 +1047,86 @@ canvas.chart-canvas {
       </div>
     </div>
 
+    <!-- ███ SETTINGS ███ -->
+    <div class="panel" id="panel-settings">
+      <div class="panel-header">
+        <h2><span>⚙️</span> Configurações</h2>
+      </div>
+
+      <div class="grid-2">
+        <!-- GitHub Sync -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:22px">🔗</span>
+            <div>
+              <div style="font-weight:700;font-size:16px">GitHub Sync</div>
+              <div style="font-size:11px;color:var(--text-muted)">Sincronize o backup.json com seu repositório</div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;background:var(--bg-input);padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border)">
+            Use um <strong style="color:var(--accent)">Fine-grained Token</strong> com permissão <em>Contents: Read and Write</em>.<br>
+            O sistema envia/puxa o arquivo <code style="color:var(--accent)">backup.json</code> da pasta <code style="color:var(--accent)">assets/</code> do seu repositório.
+          </p>
+          <div class="form-group">
+            <label>Fine-grained Token (PAT)</label>
+            <input type="password" id="gh-token" placeholder="github_pat_xxxxxxxx">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Repositório (owner/repo)</label>
+              <input type="text" id="gh-repo" placeholder="usuario/meu-repo">
+            </div>
+            <div class="form-group">
+              <label>Branch</label>
+              <input type="text" id="gh-branch" placeholder="main" value="main">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="saveGHConfig()">💾 Salvar Config</button>
+            <button class="btn" id="btn-gh-push" onclick="pushToGH()">⬆️ Push para GitHub</button>
+            <button class="btn" id="btn-gh-pull" onclick="pullFromGH()">⬇️ Pull do GitHub</button>
+          </div>
+          <div id="gh-sync-log" style="margin-top:12px;font-size:11px;font-family:var(--font-mono);color:var(--text-muted);max-height:120px;overflow-y:auto;display:none;background:var(--bg-input);padding:10px;border-radius:var(--radius-sm);border:1px solid var(--border)"></div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:22px">💾</span>
+            <div>
+              <div style="font-weight:700;font-size:16px">Dados Locais</div>
+              <div style="font-size:11px;color:var(--text-muted)">Exportar, importar ou resetar dados</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn" onclick="exportData()">📥 Exportar backup.json</button>
+            <button class="btn" onclick="document.getElementById('import-file').click()">📤 Importar backup.json</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+            <button class="btn btn-danger" onclick="resetAllData()">🗑️ Resetar Todos os Dados</button>
+          </div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">
+              Transações: <span id="cfg-tx-count">0</span> •
+              Assinaturas: <span id="cfg-sub-count">0</span> •
+              Investimentos: <span id="cfg-inv-count">0</span> •
+              Metas: <span id="cfg-goal-count">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-load info -->
+      <div class="card" style="margin-top:16px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">ℹ️</span>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+            <strong>Auto-load:</strong> Ao abrir o site, o sistema tenta carregar dados na seguinte ordem:<br>
+            1️⃣ localStorage (dados locais) → 2️⃣ <code style="color:var(--accent)">assets/backup.json</code> (arquivo estático) → 3️⃣ GitHub API (se configurado)
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1172,12 +1262,18 @@ canvas.chart-canvas {
         </select>
       </div>
     </div>
-    <div class="form-group">
-      <label>Status</label>
-      <select id="sub-status">
-        <option value="active">Ativa</option>
-        <option value="paused">Pausada</option>
-      </select>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Último Pagamento</label>
+        <input type="date" id="sub-last-payment">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="sub-status">
+          <option value="active">Ativa</option>
+          <option value="paused">Pausada</option>
+        </select>
+      </div>
     </div>
     <input type="hidden" id="sub-edit-id">
     <div class="modal-actions">
@@ -1288,6 +1384,8 @@ canvas.chart-canvas {
    STATE & DATA
    ═══════════════════════════════════════════════════════════════ */
 const STORAGE_KEY = "vault_finance_data";
+const GH_CONFIG_KEY = "vault_gh_config";
+const BACKUP_PATH = "assets/backup.json";
 
 let state = {
   transactions: [],
@@ -1296,6 +1394,12 @@ let state = {
   investments: [],
   goals: [],
   settings: { currency: "BRL" },
+};
+
+let ghConfig = {
+  token: "",
+  repo: "",
+  branch: "main",
 };
 
 const ai = new FinanceAI();
@@ -1307,8 +1411,266 @@ function save() {
 function load() {
   const d = localStorage.getItem(STORAGE_KEY);
   if (d) {
-    try { state = JSON.parse(d); } catch(e) {}
+    try {
+      state = JSON.parse(d);
+      migrateSubscriptions();
+    } catch(e) {}
   }
+  // Load GitHub config
+  const gc = localStorage.getItem(GH_CONFIG_KEY);
+  if (gc) {
+    try { ghConfig = JSON.parse(gc); } catch(e) {}
+  }
+}
+
+function migrateSubscriptions() {
+  // Migrate old subscriptions that don't have lastPaymentDate
+  state.subscriptions.forEach(s => {
+    if (!s.lastPaymentDate) {
+      s.lastPaymentDate = new Date().toISOString().split("T")[0];
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTO-LOAD FROM assets/backup.json
+   ═══════════════════════════════════════════════════════════════ */
+async function autoLoadBackup() {
+  // Only auto-load if localStorage is empty
+  const d = localStorage.getItem(STORAGE_KEY);
+  if (d) return false;
+
+  try {
+    const resp = await fetch(BACKUP_PATH);
+    if (!resp.ok) throw new Error("backup.json not found");
+    const data = await resp.json();
+    if (data && (data.transactions || data.allocations || data.subscriptions)) {
+      state = { ...state, ...data };
+      migrateSubscriptions();
+      save();
+      console.log("[VAULT] Auto-loaded from assets/backup.json");
+      return true;
+    }
+  } catch(e) {
+    console.log("[VAULT] No assets/backup.json found, starting fresh");
+  }
+  return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GITHUB SYNC — Git Data API (Fine-grained Token)
+   ═══════════════════════════════════════════════════════════════ */
+function saveGHConfig() {
+  ghConfig.token = document.getElementById("gh-token").value.trim();
+  ghConfig.repo = document.getElementById("gh-repo").value.trim();
+  ghConfig.branch = document.getElementById("gh-branch").value.trim() || "main";
+  localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(ghConfig));
+  ghLog("✅ Configuração salva!");
+}
+
+function loadGHConfigUI() {
+  document.getElementById("gh-token").value = ghConfig.token;
+  document.getElementById("gh-repo").value = ghConfig.repo;
+  document.getElementById("gh-branch").value = ghConfig.branch || "main";
+}
+
+function ghLog(msg) {
+  const log = document.getElementById("gh-sync-log");
+  log.style.display = "block";
+  log.innerHTML += `<div>[${new Date().toLocaleTimeString("pt-BR")}] ${msg}</div>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+function ghHeaders() {
+  return {
+    "Authorization": `Bearer ${ghConfig.token}`,
+    "Content-Type": "application/json",
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+}
+
+async function pushToGH() {
+  if (!ghConfig.token || !ghConfig.repo) {
+    ghLog("❌ Configure o Token e Repositório primeiro!");
+    return;
+  }
+
+  const btn = document.getElementById("btn-gh-push");
+  btn.disabled = true;
+  btn.textContent = "⏳ Enviando...";
+
+  try {
+    const apiBase = `https://api.github.com/repos/${ghConfig.repo}`;
+    const branch = ghConfig.branch || "main";
+    const filePath = BACKUP_PATH; // assets/backup.json
+    const content = JSON.stringify(state, null, 2);
+
+    ghLog("📡 Obtendo referência da branch...");
+    const refResp = await fetch(`${apiBase}/git/ref/heads/${branch}`, { headers: ghHeaders() });
+    if (!refResp.ok) throw new Error("Falha ao obter ref da branch: " + (await refResp.text()));
+    const refData = await refResp.json();
+    const latestCommitSha = refData.object.sha;
+
+    ghLog("📦 Obtendo commit atual...");
+    const commitResp = await fetch(`${apiBase}/git/commits/${latestCommitSha}`, { headers: ghHeaders() });
+    if (!commitResp.ok) throw new Error("Falha ao obter commit");
+    const commitData = await commitResp.json();
+    const treeSha = commitData.tree.sha;
+
+    ghLog("📝 Criando blob com os dados...");
+    const blobResp = await fetch(`${apiBase}/git/blobs`, {
+      method: "POST",
+      headers: ghHeaders(),
+      body: JSON.stringify({ content: content, encoding: "utf-8" }),
+    });
+    if (!blobResp.ok) throw new Error("Falha ao criar blob");
+    const blobData = await blobResp.json();
+
+    ghLog("🌳 Criando nova tree...");
+    const treeResp = await fetch(`${apiBase}/git/trees`, {
+      method: "POST",
+      headers: ghHeaders(),
+      body: JSON.stringify({
+        base_tree: treeSha,
+        tree: [{ path: filePath, mode: "100644", type: "blob", sha: blobData.sha }],
+      }),
+    });
+    if (!treeResp.ok) throw new Error("Falha ao criar tree");
+    const treeData = await treeResp.json();
+
+    ghLog("💾 Criando commit...");
+    const newCommitResp = await fetch(`${apiBase}/git/commits`, {
+      method: "POST",
+      headers: ghHeaders(),
+      body: JSON.stringify({
+        message: `[VAULT] Backup ${new Date().toLocaleString("pt-BR")}`,
+        tree: treeData.sha,
+        parents: [latestCommitSha],
+      }),
+    });
+    if (!newCommitResp.ok) throw new Error("Falha ao criar commit");
+    const newCommitData = await newCommitResp.json();
+
+    ghLog("🔄 Atualizando branch...");
+    const updateResp = await fetch(`${apiBase}/git/refs/heads/${branch}`, {
+      method: "PATCH",
+      headers: ghHeaders(),
+      body: JSON.stringify({ sha: newCommitData.sha, force: true }),
+    });
+    if (!updateResp.ok) throw new Error("Falha ao atualizar ref");
+
+    ghLog("✅ Push concluído com sucesso!");
+  } catch(e) {
+    ghLog(`❌ Erro: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "⬆️ Push para GitHub";
+  }
+}
+
+async function pullFromGH() {
+  if (!ghConfig.token || !ghConfig.repo) {
+    ghLog("❌ Configure o Token e Repositório primeiro!");
+    return;
+  }
+
+  const btn = document.getElementById("btn-gh-pull");
+  btn.disabled = true;
+  btn.textContent = "⏳ Puxando...";
+
+  try {
+    const apiBase = `https://api.github.com/repos/${ghConfig.repo}`;
+    const branch = ghConfig.branch || "main";
+    const filePath = BACKUP_PATH;
+
+    ghLog("📡 Buscando backup.json do GitHub...");
+    const resp = await fetch(`${apiBase}/contents/${filePath}?ref=${branch}`, {
+      headers: {
+        ...ghHeaders(),
+        "Accept": "application/vnd.github.raw+json",
+      },
+    });
+
+    if (!resp.ok) throw new Error("Arquivo não encontrado: " + resp.status);
+
+    const data = await resp.json();
+    if (data && typeof data === "object") {
+      state = { ...state, ...data };
+      migrateSubscriptions();
+      save();
+      refreshAll();
+      ghLog("✅ Pull concluído! Dados carregados.");
+    } else {
+      throw new Error("JSON inválido recebido");
+    }
+  } catch(e) {
+    ghLog(`❌ Erro: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "⬇️ Pull do GitHub";
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPORT / IMPORT / RESET
+   ═══════════════════════════════════════════════════════════════ */
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data && typeof data === "object") {
+        state = { ...state, ...data };
+        migrateSubscriptions();
+        save();
+        refreshAll();
+        alert("Dados importados com sucesso!");
+      }
+    } catch(err) {
+      alert("Erro ao importar: arquivo JSON inválido");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function resetAllData() {
+  if (!confirm("⚠️ Isso vai apagar TODOS os dados. Tem certeza?")) return;
+  if (!confirm("🔥 ÚLTIMA CHANCE: Todos os dados serão perdidos. Confirmar?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = { transactions: [], allocations: [], subscriptions: [], investments: [], goals: [], settings: { currency: "BRL" } };
+  refreshAll();
+  alert("Dados resetados.");
+}
+
+function refreshAll() {
+  refreshDashboard();
+  refreshTransactions();
+  refreshAllocations();
+  refreshSubscriptions();
+  refreshInvestments();
+  refreshGoals();
+}
+
+function refreshSettings() {
+  loadGHConfigUI();
+  document.getElementById("cfg-tx-count").textContent = state.transactions.length;
+  document.getElementById("cfg-sub-count").textContent = state.subscriptions.length;
+  document.getElementById("cfg-inv-count").textContent = state.investments.length;
+  document.getElementById("cfg-goal-count").textContent = state.goals.length;
 }
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -1347,6 +1709,7 @@ function refreshPanel(name) {
     case "goals": refreshGoals(); break;
     case "forecast": refreshForecast(); break;
     case "ai": refreshAI(); break;
+    case "settings": refreshSettings(); break;
   }
 }
 
@@ -1535,7 +1898,8 @@ function refreshTransactions() {
       const catLabels = {
         salary: "Salário", freelance: "Freelance", investment_return: "Ret. Invest.", other_income: "Outra Receita",
         food: "Alimentação", transport: "Transporte", housing: "Moradia", health: "Saúde",
-        education: "Educação", entertainment: "Entretenimento", shopping: "Compras", other_expense: "Outra Despesa"
+        education: "Educação", entertainment: "Entretenimento", shopping: "Compras", other_expense: "Outra Despesa",
+        subscription_auto: "Assinatura (Auto)"
       };
       return `<tr>
         <td class="mono">${fmtDate(tx.date)}</td>
@@ -1659,6 +2023,7 @@ function saveSubscription() {
     amount: parseFloat(document.getElementById("sub-amount").value) || 0,
     billing: document.getElementById("sub-billing").value,
     status: document.getElementById("sub-status").value,
+    lastPaymentDate: document.getElementById("sub-last-payment").value || new Date().toISOString().split("T")[0],
   };
 
   if (editId) {
@@ -1673,6 +2038,11 @@ function saveSubscription() {
   refreshSubscriptions();
   refreshDashboard();
   refreshAllocations();
+
+  // Reset form
+  document.getElementById("sub-name").value = "";
+  document.getElementById("sub-amount").value = "";
+  document.getElementById("sub-last-payment").value = "";
 }
 
 function editSubscription(id) {
@@ -1684,6 +2054,7 @@ function editSubscription(id) {
   document.getElementById("sub-amount").value = s.amount;
   document.getElementById("sub-billing").value = s.billing;
   document.getElementById("sub-status").value = s.status;
+  document.getElementById("sub-last-payment").value = s.lastPaymentDate || "";
   openModal("sub-modal");
 }
 
@@ -1693,22 +2064,123 @@ function deleteSubscription(id) {
   save(); refreshSubscriptions(); refreshDashboard(); refreshAllocations();
 }
 
+function getNextPaymentDate(sub) {
+  if (!sub.lastPaymentDate) return null;
+  const last = new Date(sub.lastPaymentDate + "T00:00:00");
+  const next = new Date(last);
+  if (sub.billing === "annual") {
+    next.setFullYear(next.getFullYear() + 1);
+  } else {
+    next.setMonth(next.getMonth() + 1);
+  }
+  return next;
+}
+
+function getDaysUntil(date) {
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const diff = date.getTime() - now.getTime();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function getPaymentStatusTag(daysUntil) {
+  if (daysUntil < 0) return `<span class="tag tag-red">⚠️ Vencida (${Math.abs(daysUntil)}d atrás)</span>`;
+  if (daysUntil === 0) return `<span class="tag tag-red">🔴 Hoje!</span>`;
+  if (daysUntil <= 3) return `<span class="tag tag-yellow">⏰ ${daysUntil}d</span>`;
+  if (daysUntil <= 7) return `<span class="tag tag-yellow">📅 ${daysUntil}d</span>`;
+  return `<span class="tag tag-blue">📅 ${daysUntil}d</span>`;
+}
+
+function autoChargeSubscriptions() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let charged = false;
+
+  state.subscriptions.forEach(sub => {
+    if (sub.status !== "active" || !sub.lastPaymentDate) return;
+    const nextDate = getNextPaymentDate(sub);
+    if (!nextDate) return;
+
+    // Auto-charge: if next payment date has passed or is today
+    while (nextDate <= today) {
+      // Create expense transaction for this charge
+      const chargeDate = nextDate.toISOString().split("T")[0];
+
+      // Check if we already created this charge (avoid duplicates)
+      const alreadyCharged = state.transactions.some(t =>
+        t.description === `🔄 ${sub.name}` &&
+        t.date === chargeDate &&
+        t.type === "expense" &&
+        t.category === "subscription_auto"
+      );
+
+      if (!alreadyCharged) {
+        state.transactions.push({
+          id: uid(),
+          type: "expense",
+          date: chargeDate,
+          description: `🔄 ${sub.name}`,
+          amount: sub.amount,
+          category: "subscription_auto",
+          allocationId: "",
+          isSalary: false,
+        });
+        charged = true;
+      }
+
+      // Update lastPaymentDate to this charge date
+      sub.lastPaymentDate = chargeDate;
+
+      // Calculate next one
+      if (sub.billing === "annual") {
+        nextDate.setFullYear(nextDate.getFullYear() + 1);
+      } else {
+        nextDate.setMonth(nextDate.getMonth() + 1);
+      }
+    }
+  });
+
+  if (charged) {
+    save();
+  }
+  return charged;
+}
+
 function refreshSubscriptions() {
   const tbody = document.getElementById("sub-table-body");
   const empty = document.getElementById("sub-empty");
+
+  // Run auto-charge before rendering
+  autoChargeSubscriptions();
 
   if (state.subscriptions.length === 0) {
     tbody.innerHTML = "";
     empty.style.display = "block";
   } else {
     empty.style.display = "none";
-    tbody.innerHTML = state.subscriptions.map(s => {
+    // Sort by next payment date (soonest first)
+    const sorted = [...state.subscriptions].sort((a, b) => {
+      const nextA = getNextPaymentDate(a);
+      const nextB = getNextPaymentDate(b);
+      if (!nextA) return 1;
+      if (!nextB) return -1;
+      return nextA - nextB;
+    });
+
+    tbody.innerHTML = sorted.map(s => {
       const monthly = s.billing === "annual" ? s.amount / 12 : s.amount;
+      const nextDate = getNextPaymentDate(s);
+      const daysUntil = nextDate ? getDaysUntil(nextDate) : null;
+      const nextDateStr = nextDate ? nextDate.toLocaleDateString("pt-BR") : "—";
+      const statusPayment = daysUntil !== null && s.status === "active" ? getPaymentStatusTag(daysUntil) : '<span style="color:var(--text-muted)">—</span>';
+
       return `<tr>
         <td style="font-weight:600">${s.name}</td>
         <td class="mono">${fmt(s.amount)}</td>
         <td><span class="tag ${s.billing === 'monthly' ? 'tag-blue' : 'tag-purple'}">${s.billing === 'monthly' ? 'Mensal' : 'Anual'}</span></td>
         <td class="mono" style="color:var(--orange)">${fmt(monthly)}/mês</td>
+        <td class="mono" style="font-size:12px">${s.lastPaymentDate ? fmtDate(s.lastPaymentDate) : '—'}</td>
+        <td style="font-size:12px">${s.status === 'active' ? nextDateStr : '—'} ${statusPayment}</td>
         <td><span class="tag ${s.status === 'active' ? 'tag-green' : 'tag-yellow'}">${s.status === 'active' ? 'Ativa' : 'Pausada'}</span></td>
         <td><div class="action-btns">
           <div class="action-btn" onclick="editSubscription('${s.id}')" title="Editar">✏️</div>
@@ -1723,6 +2195,24 @@ function refreshSubscriptions() {
   document.getElementById("sub-monthly").textContent = fmt(monthlyTotal);
   document.getElementById("sub-annual").textContent = fmt(annualTotal);
   document.getElementById("sub-count").textContent = state.subscriptions.filter(s => s.status === "active").length;
+
+  // Next charge info
+  const activeSubs = state.subscriptions.filter(s => s.status === "active" && s.lastPaymentDate);
+  if (activeSubs.length > 0) {
+    const nextCharges = activeSubs.map(s => {
+      const next = getNextPaymentDate(s);
+      return { sub: s, next, days: next ? getDaysUntil(next) : 999 };
+    }).filter(x => x.next).sort((a, b) => a.days - b.days);
+
+    if (nextCharges.length > 0) {
+      const nearest = nextCharges[0];
+      const dateStr = nearest.next.toLocaleDateString("pt-BR");
+      const daysStr = nearest.days === 0 ? "HOJE" : nearest.days < 0 ? `${Math.abs(nearest.days)}d atrás` : `em ${nearest.days}d`;
+      document.getElementById("sub-next-charge").innerHTML = `${nearest.sub.name}<br><span style="font-size:11px;color:var(--text-muted)">${dateStr} (${daysStr})</span>`;
+    }
+  } else {
+    document.getElementById("sub-next-charge").textContent = "—";
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2340,13 +2830,23 @@ function formatAIResponse(text) {
 /* ═══════════════════════════════════════════════════════════════
    INIT
    ═══════════════════════════════════════════════════════════════ */
-function init() {
+async function init() {
   load();
+
+  // Try auto-load from assets/backup.json if no local data
+  const hasLocalData = state.transactions.length > 0 || state.subscriptions.length > 0 || state.allocations.length > 0;
+  if (!hasLocalData) {
+    const loaded = await autoLoadBackup();
+    if (loaded) {
+      console.log("[VAULT] Data loaded from assets/backup.json");
+    }
+  }
 
   // Set today's date as default
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("tx-date").value = today;
   document.getElementById("inv-date").value = today;
+  document.getElementById("sub-last-payment").value = today;
 
   onTxTypeChange();
   refreshDashboard();
